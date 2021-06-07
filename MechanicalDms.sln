@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{55852037-60C2-4F15-95F9-FF2329DD0960}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugin", "Plugin", "{241198DE-BA49-4B04-9EB0-E8A512F3D722}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{9D2452E9-6485-48BE-A200-5D51B13CE6AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Entertainment", "src\MechanicalDms.Entertainment\MechanicalDms.Entertainment.csproj", "{CC172755-84ED-478A-9CF5-83FA7767ED99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Database", "src\MechanicalDms.Database\MechanicalDms.Database.csproj", "{6F11993E-0CAA-4885-B4DE-68A7979F1601}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Maintainer", "src\MechanicalDms.Maintainer\MechanicalDms.Maintainer.csproj", "{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Common", "src\MechanicalDms.Common\MechanicalDms.Common.csproj", "{7922510F-957B-4709-8BB8-AD276D210BBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.AccountManager", "src\MechanicalDms.AccountManager\MechanicalDms.AccountManager.csproj", "{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Migration", "src\MechanicalDms.Migration\MechanicalDms.Migration.csproj", "{40D3214D-726D-4301-90F4-A6118823C1F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC172755-84ED-478A-9CF5-83FA7767ED99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC172755-84ED-478A-9CF5-83FA7767ED99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC172755-84ED-478A-9CF5-83FA7767ED99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC172755-84ED-478A-9CF5-83FA7767ED99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F11993E-0CAA-4885-B4DE-68A7979F1601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F11993E-0CAA-4885-B4DE-68A7979F1601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F11993E-0CAA-4885-B4DE-68A7979F1601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F11993E-0CAA-4885-B4DE-68A7979F1601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7922510F-957B-4709-8BB8-AD276D210BBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7922510F-957B-4709-8BB8-AD276D210BBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7922510F-957B-4709-8BB8-AD276D210BBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7922510F-957B-4709-8BB8-AD276D210BBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40D3214D-726D-4301-90F4-A6118823C1F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40D3214D-726D-4301-90F4-A6118823C1F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40D3214D-726D-4301-90F4-A6118823C1F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40D3214D-726D-4301-90F4-A6118823C1F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CC172755-84ED-478A-9CF5-83FA7767ED99} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
+		{6F11993E-0CAA-4885-B4DE-68A7979F1601} = {55852037-60C2-4F15-95F9-FF2329DD0960}
+		{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
+		{7922510F-957B-4709-8BB8-AD276D210BBC} = {9D2452E9-6485-48BE-A200-5D51B13CE6AE}
+		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
+		{40D3214D-726D-4301-90F4-A6118823C1F2} = {55852037-60C2-4F15-95F9-FF2329DD0960}
+	EndGlobalSection
+EndGlobal
