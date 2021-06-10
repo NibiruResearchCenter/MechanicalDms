@@ -12,4 +12,8 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MechanicalDms.Database\MechanicalDms.Database.csproj" />
+    </ItemGroup>
+
 </Project>

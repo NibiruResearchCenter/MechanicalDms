@@ -510,5 +510,5 @@ $RECYCLE.BIN/
 # Local History for Visual Studio Code
 .history/
 
-# Test Project
-KaiheilaBot.TestConsole
+# Database Config File
+DbConfig.cs
