@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="KaiheilaBot.Core" Version="0.5.3" />
+      <PackageReference Include="KaiheilaBot.Core" Version="0.6.0" />
     </ItemGroup>
 
 </Project>

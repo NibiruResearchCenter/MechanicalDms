@@ -5,7 +5,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="KaiheilaBot.Core" Version="0.5.3" />
+      <PackageReference Include="KaiheilaBot.Core" Version="0.6.0" />
+      <PackageReference Include="Quartz" Version="3.3.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\MechanicalDms.Operation\MechanicalDms.Operation.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="config.yml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
