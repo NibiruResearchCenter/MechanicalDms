@@ -512,3 +512,6 @@ $RECYCLE.BIN/
 
 # Database Config File
 DbConfig.cs
+
+# Local Config File
+config.yml
