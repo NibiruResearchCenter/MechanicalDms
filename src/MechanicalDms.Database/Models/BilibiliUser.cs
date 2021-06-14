@@ -13,8 +13,6 @@ namespace MechanicalDms.Database.Models
         [Required]
         public int GuardLevel { get; set; }
         [Required]
-        public long ExpireTime { get; set; }
-        [Required]
         public int Level { get; set; }
     }
 }
