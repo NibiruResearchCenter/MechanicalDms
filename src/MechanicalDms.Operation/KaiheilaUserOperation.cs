@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MechanicalDms.Database;
 using MechanicalDms.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MechanicalDms.Operation
 {
@@ -71,7 +73,22 @@ namespace MechanicalDms.Operation
         /// <returns>开黑啦用户实体类</returns>
         public KaiheilaUser GetKaiheilaUser(string uid)
         {
-            return _db.KaiheilaUsers.FirstOrDefault(x => x.Uid == uid);
+            return _db.KaiheilaUsers
+                .Include(x => x.BilibiliUser)
+                .Include(x => x.MinecraftPlayer)
+                .FirstOrDefault(x => x.Uid == uid);
+        }
+
+        /// <summary>
+        /// 获取拥有大航海角色的开黑啦用户
+        /// </summary>
+        /// <returns>开黑啦用户实体类列表</returns>
+        public IEnumerable<KaiheilaUser> GetKaiheilaUserWithRole(string role)
+        {
+            return _db.KaiheilaUsers
+                .Include(x => x.BilibiliUser)
+                .Where(x => x.Roles.Contains(role))
+                .ToList();
         }
 
         /// <summary>
@@ -138,6 +155,16 @@ namespace MechanicalDms.Operation
             return 0;
         }
 
+        /// <summary>
+        /// 保存更改
+        /// </summary>
+        /// <param name="user"></param>
+        public void UpdateAndSave(KaiheilaUser user)
+        {
+            _db.Update(user);
+            _db.SaveChanges();
+        }
+        
         public void Dispose()
         {
             _db.Dispose();

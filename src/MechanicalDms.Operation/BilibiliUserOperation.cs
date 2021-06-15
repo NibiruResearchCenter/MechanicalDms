@@ -42,6 +42,12 @@ namespace MechanicalDms.Operation
             _db.SaveChanges();
         }
 
+        public void UpdateAndSave(BilibiliUser user)
+        {
+            _db.Update(user);
+            _db.SaveChanges();
+        }
+        
         public void Dispose()
         {
             _db.Dispose();
