@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using KaiheilaBot.Core.Common.Builders.CardMessage;
 using KaiheilaBot.Core.Common.Serializers;
 using KaiheilaBot.Core.Extension;
@@ -11,6 +13,8 @@ using KaiheilaBot.Core.Models.Objects.CardMessages.Enums;
 using KaiheilaBot.Core.Models.Requests.ChannelMessage;
 using KaiheilaBot.Core.Models.Service;
 using KaiheilaBot.Core.Services.IServices;
+using MechanicalDms.AccountManager.Binding;
+using MechanicalDms.AccountManager.Helpers;
 using MechanicalDms.AccountManager.ScheduledJobs;
 using MechanicalDms.Operation;
 using Microsoft.Extensions.Logging;
@@ -29,6 +33,7 @@ namespace MechanicalDms.AccountManager
             var config = await YamlSerializer.Deserialize<Dictionary<string, string>>(Path.Combine(pluginPath, "config.yml"));
 
             #region Map Configuration
+            
             Configuration.GuildId = config["GuildId"];
             Configuration.QueryChannel = config["QueryChannel"];
             Configuration.AdminChannel = config["AdminChannel"];
@@ -40,7 +45,19 @@ namespace MechanicalDms.AccountManager
             Configuration.LiveRoomId = config["LiveRoomId"];
             Configuration.LiveHostId = config["LiveHostId"];
             Configuration.PluginPath = pluginPath;
+            
             #endregion
+
+            #region Session Manager Setup
+
+            SessionManager.Api = httpApiRequestService;
+            SessionManager.QueryTimer = new Timer(){ Interval = 3 * 1000, Enabled = false, AutoReset = true };
+            SessionManager.QueryTimer.Elapsed += SessionManager.QuerySessions;
+            SessionManager.QueryTimer.Enabled = true;
+
+            #endregion
+
+            #region Bilibili Guard Cache Setup
             
             FetchBilibiliGuardList.HttpApiRequestService = httpApiRequestService;
             FetchBilibiliGuardList.Logger = logger;
@@ -50,6 +67,9 @@ namespace MechanicalDms.AccountManager
                 Directory.CreateDirectory(Path.Combine(pluginPath, "GuardCache"));
             }
             
+            #endregion
+
+            #region Scheduler Setup
             var factory = new StdSchedulerFactory();
             Scheduler = await factory.GetScheduler();
 
@@ -67,6 +87,32 @@ namespace MechanicalDms.AccountManager
                 .Build();
 
             await Scheduler.ScheduleJob(fetchBilibiliGuardListJob, fetchBilibiliGuardListJobTrigger);
+            #endregion
+            
+            #region Latest Cache File Path Setup
+            
+            var cacheFiles = new DirectoryInfo(Path.Combine(pluginPath, "GuardCache")).GetFiles();
+
+            if (cacheFiles.Length == 0)
+            {
+                Scheduler.TriggerJob(new JobKey("fetchBilibiliGuardListJob", "group1")).Wait();
+            }
+            else
+            {
+                var latestFile = cacheFiles.OrderByDescending(x => x.CreationTime).First();
+                Configuration.LatestGuardCache = latestFile.FullName;
+            }
+            
+            #endregion
+
+            #region Prepare QrCode Cache Folder
+
+            if (Directory.Exists(Path.Combine(Configuration.PluginPath, "QrCodeCache")) is not true)
+            {
+                Directory.CreateDirectory(Path.Combine(Configuration.PluginPath, "QrCodeCache"));
+            }
+            
+            #endregion
             
             AddCommand(commandService);
         }
@@ -83,31 +129,15 @@ namespace MechanicalDms.AccountManager
                     .AddAllowedChannel(Configuration.QueryChannel)
                     .SetFunction((args, logger, e, api) => 
                         QueryCommandFunction(e, api, logger, args)))
-                .AddChildNode(new CommandNode("getId")
+                .AddChildNode(new CommandNode("bind")
                     .AddAllowedChannel(Configuration.QueryChannel)
-                    .SetFunction((args, logger, e, api) =>
-                    {
-                        var user = e.Data.Extra.Author;
-
-                        var roleStr = string.Join(' ', user.Roles);
-                        
-                        using var khlOperation = new KaiheilaUserOperation();
-                        khlOperation.AddOrUpdateKaiheilaUser(user.Id, user.Username, user.IdentifyNumber, roleStr);
-                        
-                        api.GetResponse(new CreateMessageRequest()
-                        {
-                            ChannelId = e.Data.TargetId,
-                            Content = e.Data.AuthorId,
-                            MessageType = 1,
-                            Quote = e.Data.MessageId,
-                            TempTargetId = e.Data.AuthorId
-                        }).Wait();
-                        return 0;
-                    }))
+                    .AddChildNode(new CommandNode("bili")
+                        .SetFunction((args, logger, e, api) => 
+                            BindingBilibiliCommandFunction(e, api, logger, args))))
                 .AddChildNode(new CommandNode("run")
                     .AddAllowedChannel(Configuration.AdminChannel)
                     .AddChildNode(new CommandNode("guardCache")
-                        .SetFunction((args, logger, e, api) =>
+                        .SetFunction((_, logger, e, api) =>
                         {
                             logger.LogInformation($"MD-AD - {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
                                                   $"手动执行了缓存大航海列表");
@@ -124,8 +154,7 @@ namespace MechanicalDms.AccountManager
 
                             return 0;
                         })));
-            
-            
+
             commandService.AddCommand(accountCommand);
         }
 
@@ -174,28 +203,23 @@ namespace MechanicalDms.AccountManager
             
             if (user.BilibiliUser is not null) 
             { 
+                logger.LogCritical("到这里了！！！");
                 biliUid = user.BilibiliUser.Uid; 
-                biliName = user.BilibiliUser.Username; 
+                biliName = user.BilibiliUser.Username;
                 biliLevel = user.BilibiliUser.Level;
             }
 
             var responseCard = new CardMessageBuilder()
                 .AddCard(new CardBuilder(Themes.Info, "#66CCFF", Sizes.Lg)
                     .AddModules(new ModuleBuilder()
-                        .AddContext(new ContextElementBuilder()
-                            .AddElement(new Kmarkdown($"(met){e.Data.AuthorId}(met) 查询到您的绑定信息"))
-                            .Build())
+                        .AddSection(SectionModes.Left, new Kmarkdown($"(met){e.Data.AuthorId}(met) 查询到您的绑定信息"),null)
                         .AddDivider()
-                        .AddContext(new ContextElementBuilder()
-                            .AddElement(new Kmarkdown($"Bilibili UID：{biliUid}"))
-                            .AddElement(new Kmarkdown($"Bilibili Username：{biliName}"))
-                            .AddElement(new Kmarkdown($"Bilibili Level：{biliLevel}"))
-                            .Build())
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili UID：{biliUid}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili Username：{biliName}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili Level：{biliLevel}"), null)
                         .AddDivider()
-                        .AddContext(new ContextElementBuilder()
-                            .AddElement(new Kmarkdown($"Minecraft UUID：{mcUuid}"))
-                            .AddElement(new Kmarkdown($"Minecraft Player Name：{mcPlayerName}"))
-                            .Build())
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft UUID：{mcUuid}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft Player Name：{mcPlayerName}"), null)
                         .Build())
                     .Build())
                 .Build();
@@ -211,6 +235,81 @@ namespace MechanicalDms.AccountManager
             t2.Wait();
             logger.LogDebug($"MD-AM - HttpApi 请求 Response：{t2.Result.Content}");
                         
+            return 0;
+        }
+
+        private static int BindingBilibiliCommandFunction(BaseMessageEvent<TextMessageEvent> e,
+            IHttpApiRequestService httpApiRequestService,
+            ILogger<IPlugin> logger, IReadOnlyCollection<string> args)
+        {
+            if (args.Count != 0)
+            { 
+                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，过多的参数"); 
+                return 1;
+            }
+            
+            var user = e.Data.Extra.Author;
+
+            var roleStr = string.Join(' ', user.Roles);
+                        
+            using var khlOperation = new KaiheilaUserOperation();
+            khlOperation.AddOrUpdateKaiheilaUser(user.Id, user.Username, user.IdentifyNumber, roleStr);
+
+            var khlId = e.Data.AuthorId;
+
+            var t1 = SessionManager.NewSession(khlId, logger, httpApiRequestService);
+            t1.Wait();
+            var url = t1.Result;
+
+            string message;
+            
+            if (url is null)
+            {
+                message = new CardMessageBuilder()
+                    .AddCard(new CardBuilder(Themes.Warning, "#66CCFF", Sizes.Lg)
+                        .AddModules(new ModuleBuilder()
+                            .AddSection(SectionModes.Right, 
+                                new Kmarkdown($@"(met){e.Data.AuthorId}(met) 
+Bilibili API 请求失败，请重试
+
+若多次重试后仍然出错，请联系管理员"), 
+                                null)
+                            .Build())
+                        .Build())
+                    .Build();
+            }
+            else
+            {
+                var kmd = $@"(met){e.Data.AuthorId}(met)
+请使用手机 Bilibili 客户端扫描右侧二维码进行登录
+
+二维码有效时间为 ***120*** 秒
+该消息仅您可见，刷新后将会消失";
+
+                var t2 = QrCodeHelper.GenerateAndUploadQrCode(url, httpApiRequestService);
+                t2.Wait();
+                var qrCode = t2.Result;
+                
+                message = new CardMessageBuilder()
+                    .AddCard(new CardBuilder(Themes.Info, "#66CCFF", Sizes.Lg)
+                        .AddModules(new ModuleBuilder()
+                            .AddSection(SectionModes.Right, 
+                                new Kmarkdown(kmd),
+                                new Image(qrCode, "qrcode"))
+                            .Build())
+                        .Build())
+                    .Build();
+            }
+
+            httpApiRequestService.GetResponse(new CreateMessageRequest()
+            {
+                ChannelId = e.Data.TargetId,
+                MessageType = 10,
+                Content = message,
+                Quote = e.Data.MessageId,
+                TempTargetId = e.Data.AuthorId
+            });
+            
             return 0;
         }
     }

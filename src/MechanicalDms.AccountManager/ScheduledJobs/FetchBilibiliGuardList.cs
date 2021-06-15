@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,8 @@ using KaiheilaBot.Core.Extension;
 using KaiheilaBot.Core.Models.Requests.ChannelMessage;
 using KaiheilaBot.Core.Services.IServices;
 using MechanicalDms.AccountManager.Models;
+using MechanicalDms.Database.Models;
+using MechanicalDms.Operation;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using RestSharp;
@@ -21,7 +24,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var jsonStr = await GetGuards();
+            var list = await GetGuards(); 
+            var jsonStr = JsonSerializer.Serialize(list);
             var now = DateTime.Now;
             var timeStr = $"{now:yyyyMMddHHmm}";
 
@@ -31,9 +35,10 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             await sw.WriteAsync(jsonStr);
             sw.Close();
             Configuration.LatestGuardCache = Path.Combine(Configuration.PluginPath, "GuardCache", timeStr + ".json");
+            await UpdateDatabaseAndRole(list);
         }
         
-        private async Task<string> GetGuards()
+        private static async Task<List<Guard>> GetGuards()
         {
             var page = 1;
             var response = await GetGuardPageList(page);
@@ -114,10 +119,10 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 MessageType = 1
             });
 
-            return JsonSerializer.Serialize(list);
+            return list;
         }
         
-        private async Task<string> GetGuardPageList(int page)
+        private static async Task<string> GetGuardPageList(int page)
         {
             await Task.Delay(1500);
             var client = new RestClient(new Uri("https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topList"));
@@ -129,6 +134,79 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             var response = await client.ExecuteAsync(request);
 
             return response.StatusCode != HttpStatusCode.OK ? null : response.Content;
+        }
+
+        private static async Task UpdateDatabaseAndRole(IReadOnlyCollection<Guard> guards)
+        {
+            using var kaiheilaUserOperation = new KaiheilaUserOperation();
+            using var bilibiliUserOperation = new BilibiliUserOperation();
+            var list = new List<KaiheilaUser>();
+            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.GovernorRole));
+            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.AdmiralRole));
+            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.CaptainRole));
+
+            var roles = new List<string>()
+            {
+                Configuration.GovernorRole,
+                Configuration.AdmiralRole,
+                Configuration.CaptainRole
+            };
+            
+            foreach (var user in list)
+            {
+                var uid = user.BilibiliUser.Uid;
+                var current = guards.FirstOrDefault(x => x.Uid == uid);
+                if (current is null)
+                {
+                    var gl = user.BilibiliUser.GuardLevel;
+                    var role = roles[gl - 1];
+                    user.BilibiliUser.GuardLevel = 0;
+                    await RevokeRole(user.Uid, role);
+                    var userRoles = user.Roles.Split(' ').ToList();
+                    userRoles.Remove(role);
+                    user.Roles = string.Join(' ', userRoles);
+                    bilibiliUserOperation.UpdateAndSave(user.BilibiliUser);
+                    kaiheilaUserOperation.UpdateAndSave(user);
+                }
+                else if (current.GuardLevel != user.BilibiliUser.GuardLevel)
+                {
+                    var oldGl = user.BilibiliUser.GuardLevel;
+                    var newGl = current.GuardLevel;
+                    var oldRole = roles[oldGl - 1];
+                    var newRole = roles[newGl - 1];
+                    user.BilibiliUser.GuardLevel = current.GuardLevel;
+                    await RevokeRole(user.Uid, oldRole);
+                    await GrantRole(user.Uid, newRole);
+                    var userRoles = user.Roles.Split(' ').ToList();
+                    userRoles.Remove(oldRole);
+                    userRoles.Add(newRole);
+                    user.Roles = string.Join(' ', userRoles);
+                    bilibiliUserOperation.UpdateAndSave(user.BilibiliUser);
+                    kaiheilaUserOperation.UpdateAndSave(user);
+                }
+            }
+        }
+
+        private static async Task RevokeRole(string khlUid, string role)
+        {
+            await HttpApiRequestService
+                .SetResourcePath("guild-role/revoke")
+                .SetMethod(Method.POST)
+                .AddPostBody("guild_id", Configuration.GuildId)
+                .AddPostBody("user_id", khlUid)
+                .AddPostBody("role_id", Convert.ToUInt32(role))
+                .GetResponse();
+        }
+
+        private static async Task GrantRole(string khlUid, string role)
+        {
+            await HttpApiRequestService
+                .SetResourcePath("guild-role/grant")
+                .SetMethod(Method.POST)
+                .AddPostBody("guild_id", Configuration.GuildId)
+                .AddPostBody("user_id", khlUid)
+                .AddPostBody("role_id", Convert.ToUInt32(role))
+                .GetResponse();
         }
     }
 }
