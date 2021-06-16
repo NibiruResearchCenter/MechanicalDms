@@ -339,7 +339,6 @@ namespace MechanicalDms.AccountManager
             
             if (user.BilibiliUser is not null) 
             { 
-                logger.LogCritical("到这里了！！！");
                 biliUid = user.BilibiliUser.Uid; 
                 biliName = user.BilibiliUser.Username;
                 biliLevel = user.BilibiliUser.Level;
