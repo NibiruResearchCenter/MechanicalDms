@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using KaiheilaBot.Core.Extension;
 using KaiheilaBot.Core.Models.Requests.ChannelMessage;
 using KaiheilaBot.Core.Services.IServices;
+using MechanicalDms.AccountManager.Helpers;
 using MechanicalDms.AccountManager.Models;
 using MechanicalDms.Database.Models;
 using MechanicalDms.Operation;
@@ -161,7 +162,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     var gl = user.BilibiliUser.GuardLevel;
                     var role = roles[gl - 1];
                     user.BilibiliUser.GuardLevel = 0;
-                    await RevokeRole(user.Uid, role);
+                    await RoleHelper.RevokeRole(user.Uid, role, HttpApiRequestService);
                     var userRoles = user.Roles.Split(' ').ToList();
                     userRoles.Remove(role);
                     user.Roles = string.Join(' ', userRoles);
@@ -175,8 +176,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     var oldRole = roles[oldGl - 1];
                     var newRole = roles[newGl - 1];
                     user.BilibiliUser.GuardLevel = current.GuardLevel;
-                    await RevokeRole(user.Uid, oldRole);
-                    await GrantRole(user.Uid, newRole);
+                    await RoleHelper.RevokeRole(user.Uid, oldRole, HttpApiRequestService);
+                    await RoleHelper.GrantRole(user.Uid, newRole, HttpApiRequestService);
                     var userRoles = user.Roles.Split(' ').ToList();
                     userRoles.Remove(oldRole);
                     userRoles.Add(newRole);
@@ -185,28 +186,6 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     kaiheilaUserOperation.UpdateAndSave(user);
                 }
             }
-        }
-
-        private static async Task RevokeRole(string khlUid, string role)
-        {
-            await HttpApiRequestService
-                .SetResourcePath("guild-role/revoke")
-                .SetMethod(Method.POST)
-                .AddPostBody("guild_id", Configuration.GuildId)
-                .AddPostBody("user_id", khlUid)
-                .AddPostBody("role_id", Convert.ToUInt32(role))
-                .GetResponse();
-        }
-
-        private static async Task GrantRole(string khlUid, string role)
-        {
-            await HttpApiRequestService
-                .SetResourcePath("guild-role/grant")
-                .SetMethod(Method.POST)
-                .AddPostBody("guild_id", Configuration.GuildId)
-                .AddPostBody("user_id", khlUid)
-                .AddPostBody("role_id", Convert.ToUInt32(role))
-                .GetResponse();
         }
     }
 }

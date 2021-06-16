@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,13 +36,18 @@ namespace MechanicalDms.AccountManager
             #region Map Configuration
             
             Configuration.GuildId = config["GuildId"];
-            Configuration.QueryChannel = config["QueryChannel"];
+            Configuration.BindingChannel = config["BindingChannel"];
             Configuration.AdminChannel = config["AdminChannel"];
+            Configuration.ElementApplyChannel = config["ElementApplyChannel"];
             Configuration.GovernorRole = config["GovernorRole"];
             Configuration.AdmiralRole = config["AdmiralRole"];
             Configuration.CaptainRole = config["CaptainRole"];
             Configuration.BilibiliBindingRole = config["BilibiliBindingRole"];
             Configuration.MinecraftBindingRole = config["MinecraftBindingRole"];
+            Configuration.HerbaElementRole = config["HerbaElementRole"];
+            Configuration.AquaElementRole = config["AquaElementRole"];
+            Configuration.FlameElementRole = config["FlameElementRole"];
+            Configuration.EarthElementRole = config["EarthElementRole"];
             Configuration.LiveRoomId = config["LiveRoomId"];
             Configuration.LiveHostId = config["LiveHostId"];
             Configuration.PluginPath = pluginPath;
@@ -119,6 +125,7 @@ namespace MechanicalDms.AccountManager
 
         public async Task Unload(ILogger<IPlugin> logger, IHttpApiRequestService httpApiRequestService)
         {
+            await SessionManager.WaitForFinish(logger);
             await Scheduler.Shutdown();
         }
 
@@ -126,21 +133,109 @@ namespace MechanicalDms.AccountManager
         {
             var accountCommand = new CommandNode("account")
                 .AddChildNode(new CommandNode("query")
-                    .AddAllowedChannel(Configuration.QueryChannel)
-                    .SetFunction((args, logger, e, api) => 
+                    .AddAllowedChannel(Configuration.BindingChannel)
+                    .SetFunction((args, logger, e, api) =>
                         QueryCommandFunction(e, api, logger, args)))
                 .AddChildNode(new CommandNode("bind")
-                    .AddAllowedChannel(Configuration.QueryChannel)
+                    .AddAllowedChannel(Configuration.BindingChannel)
                     .AddChildNode(new CommandNode("bili")
-                        .SetFunction((args, logger, e, api) => 
+                        .SetFunction((args, logger, e, api) =>
                             BindingBilibiliCommandFunction(e, api, logger, args))))
+                .AddChildNode(new CommandNode("element")
+                    .AddAllowedChannel(Configuration.BindingChannel)
+                    .AddAllowedRoles(Convert.ToInt64(Configuration.BilibiliBindingRole))
+                    .SetFunction((args, logger, e, api) =>
+                    {
+                        if (args.Count != 1)
+                        {
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.ElementApplyChannel,
+                                Content = $"(met){e.Data.AuthorId}(met) 参数数量错误",
+                                MessageType = 9,
+                                Quote = e.Data.MessageId,
+                                TempTargetId = e.Data.AuthorId
+                            }).Wait();
+                            return 2;
+                        }
+
+                        var userRoles = e.Data.Extra.Author.Roles.ToList();
+                        if (userRoles.Contains(Convert.ToInt64(Configuration.HerbaElementRole)) ||
+                            userRoles.Contains(Convert.ToInt64(Configuration.AquaElementRole)) ||
+                            userRoles.Contains(Convert.ToInt64(Configuration.FlameElementRole)) ||
+                            userRoles.Contains(Convert.ToInt64(Configuration.EarthElementRole)))
+                        {
+                            logger.LogWarning($"MD-AM - 用户已拥有可申请角色，拒绝新的申请");
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.ElementApplyChannel,
+                                Content = $"(met){e.Data.AuthorId}(met) 您已拥有一个可申请属性，拒绝申请",
+                                MessageType = 9,
+                                Quote = e.Data.MessageId,
+                                TempTargetId = e.Data.AuthorId
+                            }).Wait();
+                            return 1;
+                        }
+
+                        if (userRoles.Contains(Convert.ToInt64(Configuration.BilibiliBindingRole)) is false)
+                        {
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.ElementApplyChannel,
+                                Content = $"(met){e.Data.AuthorId}(met) 请先绑定 Bilibili 账号",
+                                MessageType = 9,
+                                Quote = e.Data.MessageId,
+                                TempTargetId = e.Data.AuthorId
+                            }).Wait();
+                            return 1;
+                        }
+
+                        var requestElement = args.First();
+                        var requestElementRole = requestElement switch
+                        {
+                            "herba" => Configuration.HerbaElementRole,
+                            "aqua" => Configuration.AquaElementRole,
+                            "flame" => Configuration.FlameElementRole,
+                            "earth" => Configuration.EarthElementRole,
+                            _ => null
+                        };
+
+                        if (requestElementRole is null)
+                        {
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.ElementApplyChannel,
+                                Content = $"(met){e.Data.AuthorId}(met) 参数错误",
+                                MessageType = 9,
+                                Quote = e.Data.MessageId,
+                                TempTargetId = e.Data.AuthorId
+                            }).Wait();
+                        }
+
+                        userRoles.Add(Convert.ToInt64(requestElementRole));
+                        using var operation = new KaiheilaUserOperation();
+                        var user = operation.GetKaiheilaUser(e.Data.AuthorId);
+                        user.Roles = string.Join(' ', userRoles);
+                        operation.UpdateAndSave(user);
+                        RoleHelper.GrantRole(e.Data.AuthorId, requestElementRole, api).Wait();
+                        api.GetResponse(new CreateMessageRequest()
+                        {
+                            ChannelId = Configuration.ElementApplyChannel,
+                            Content = $"(met){e.Data.AuthorId}(met) 申请成功",
+                            MessageType = 9,
+                            Quote = e.Data.MessageId,
+                            TempTargetId = e.Data.AuthorId
+                        }).Wait();
+                        return 0;
+                    }))
                 .AddChildNode(new CommandNode("run")
                     .AddAllowedChannel(Configuration.AdminChannel)
                     .AddChildNode(new CommandNode("guardCache")
                         .SetFunction((_, logger, e, api) =>
                         {
-                            logger.LogInformation($"MD-AD - {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
-                                                  $"手动执行了缓存大航海列表");
+                            logger.LogInformation(
+                                $"MD-AM - {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
+                                $"手动执行了缓存大航海列表");
 
                             Scheduler.TriggerJob(new JobKey("fetchBilibiliGuardListJob", "group1")).Wait();
 
@@ -152,6 +247,49 @@ namespace MechanicalDms.AccountManager
                                 MessageType = 1
                             }).Wait();
 
+                            return 0;
+                        }))
+                    .AddChildNode(new CommandNode("disableSession")
+                        .SetFunction((_, logger, e, api) =>
+                        {
+                            logger.LogInformation(
+                                $"MD-AM - {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
+                                $"准备停止接受新的 Bilibili 登录 Session 请求");
+                            
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.AdminChannel,
+                                Content = $"MD-AD - 准备停止接受新的 Bilibili 登录 Session 请求",
+                                MessageType = 1
+                            }).Wait();
+
+                            SessionManager.WaitForFinish(logger).Wait();
+
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.AdminChannel,
+                                Content = $"MD-AD - 已停止接受新的 Bilibili 登录 Session 请求",
+                                MessageType = 1
+                            }).Wait();
+                            
+                            return 0;
+                        }))
+                    .AddChildNode(new CommandNode("enableSession")
+                        .SetFunction((_, logger, e, api) =>
+                        {
+                            SessionManager.Enable(logger);
+                            
+                            logger.LogInformation(
+                                $"MD-AM - {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
+                                $"开始接受新的 Bilibili 登录 Session 请求");
+                            
+                            api.GetResponse(new CreateMessageRequest()
+                            {
+                                ChannelId = Configuration.AdminChannel,
+                                Content = $"MD-AD - 开始接受新的 Bilibili 登录 Session 请求",
+                                MessageType = 1
+                            }).Wait();
+                            
                             return 0;
                         })));
 
@@ -175,17 +313,15 @@ namespace MechanicalDms.AccountManager
             { 
                 logger.LogInformation($"MD-AM - 用户 {e.Data.Extra.Author.Username}#{e.Data.Extra.Author.IdentifyNumber} " +
                                       $"在数据库中不存在，UID：{e.Data.AuthorId}");
-                var t1 = httpApiRequestService.GetResponse(new CreateMessageRequest() 
+                httpApiRequestService.GetResponse(new CreateMessageRequest() 
                 {
-                    ChannelId = Configuration.QueryChannel, 
-                    Content = "查询失败，找不到用户，请输入 `/account getId` 获取您的 ID，数据会自动录入数据库。该 ID 可在绑定 Bilibili 账号时使用", 
+                    ChannelId = Configuration.BindingChannel, 
+                    Content = "查询失败，找不到用户，请输入 `/account bind bili` 来绑定您的 Bilibili 账号，开黑啦用户信息会同时录入数据库", 
                     MessageType = 9, 
                     Quote = e.Data.MessageId, 
                     TempTargetId = e.Data.AuthorId
-                }); 
-                t1.Wait(); 
-                logger.LogDebug($"MD-AM - HttpApi 请求 Response：{t1.Result.Content}"); 
-                return 0;
+                }).Wait(); 
+                return 1;
             }
 
             var mcUuid = "NaN"; 
@@ -224,16 +360,14 @@ namespace MechanicalDms.AccountManager
                     .Build())
                 .Build();
 
-            var t2 = httpApiRequestService.GetResponse(new CreateMessageRequest()
+            httpApiRequestService.GetResponse(new CreateMessageRequest()
             {
-                ChannelId = Configuration.QueryChannel,
+                ChannelId = Configuration.BindingChannel,
                 Content = responseCard,
                 MessageType = 10,
                 Quote = e.Data.MessageId,
                 TempTargetId = e.Data.AuthorId
-            }); 
-            t2.Wait();
-            logger.LogDebug($"MD-AM - HttpApi 请求 Response：{t2.Result.Content}");
+            }).Wait();
                         
             return 0;
         }
@@ -244,15 +378,41 @@ namespace MechanicalDms.AccountManager
         {
             if (args.Count != 0)
             { 
-                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，过多的参数"); 
+                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，过多的参数");
+                httpApiRequestService.GetResponse(new CreateMessageRequest()
+                {
+                    ChannelId = Configuration.BindingChannel,
+                    Content = $"(met){e.Data.AuthorId}(met) 绑定失败，过多的参数",
+                    MessageType = 9,
+                    Quote = e.Data.MessageId,
+                    TempTargetId = e.Data.AuthorId
+                }).Wait();
                 return 1;
             }
             
             var user = e.Data.Extra.Author;
 
             var roleStr = string.Join(' ', user.Roles);
-                        
+
             using var khlOperation = new KaiheilaUserOperation();
+            
+            if (roleStr.Contains(Configuration.BilibiliBindingRole))
+            {
+                var userInDb = khlOperation.GetKaiheilaUser(user.Id);
+                httpApiRequestService.GetResponse(new CreateMessageRequest()
+                {
+                    ChannelId = Configuration.ElementApplyChannel,
+                    Content = $"(met){e.Data.AuthorId}(met) 您已经绑定过了，" +
+                              $"Bilibili 用户名：{userInDb.BilibiliUser.Username} Lv.{userInDb.BilibiliUser.Level}",
+                    MessageType = 9,
+                    Quote = e.Data.MessageId,
+                    TempTargetId = e.Data.AuthorId
+                }).Wait();
+                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，已经有过绑定，" + 
+                                  $"Bilibili 用户名：{userInDb.BilibiliUser.Username} Lv.{userInDb.BilibiliUser.Level}");
+                return 2;
+            }
+            
             khlOperation.AddOrUpdateKaiheilaUser(user.Id, user.Username, user.IdentifyNumber, roleStr);
 
             var khlId = e.Data.AuthorId;
@@ -263,42 +423,58 @@ namespace MechanicalDms.AccountManager
 
             string message;
             
-            if (url is null)
+            switch (url)
             {
-                message = new CardMessageBuilder()
-                    .AddCard(new CardBuilder(Themes.Warning, "#66CCFF", Sizes.Lg)
-                        .AddModules(new ModuleBuilder()
-                            .AddSection(SectionModes.Right, 
-                                new Kmarkdown($@"(met){e.Data.AuthorId}(met) 
+                case null:
+                    message = new CardMessageBuilder()
+                        .AddCard(new CardBuilder(Themes.Warning, "#66CCFF", Sizes.Lg)
+                            .AddModules(new ModuleBuilder()
+                                .AddSection(SectionModes.Right, 
+                                    new Kmarkdown($@"(met){e.Data.AuthorId}(met) 
 Bilibili API 请求失败，请重试
 
 若多次重试后仍然出错，请联系管理员"), 
-                                null)
+                                    null)
+                                .Build())
                             .Build())
-                        .Build())
-                    .Build();
-            }
-            else
-            {
-                var kmd = $@"(met){e.Data.AuthorId}(met)
+                        .Build();
+                    break;
+                case "close":
+                    message = new CardMessageBuilder()
+                        .AddCard(new CardBuilder(Themes.Warning, "#66CCFF", Sizes.Lg)
+                            .AddModules(new ModuleBuilder()
+                                .AddSection(SectionModes.Right, 
+                                    new Kmarkdown($@"(met){e.Data.AuthorId}(met) 
+机器人拒绝接受新的请求
+机器人可能正在关闭"), 
+                                    null)
+                                .Build())
+                            .Build())
+                        .Build();
+                    break;
+                default:
+                {
+                    var kmd = $@"(met){e.Data.AuthorId}(met)
 请使用手机 Bilibili 客户端扫描右侧二维码进行登录
 
 二维码有效时间为 ***120*** 秒
 该消息仅您可见，刷新后将会消失";
 
-                var t2 = QrCodeHelper.GenerateAndUploadQrCode(url, httpApiRequestService);
-                t2.Wait();
-                var qrCode = t2.Result;
+                    var t2 = QrCodeHelper.GenerateAndUploadQrCode(url, httpApiRequestService);
+                    t2.Wait();
+                    var qrCode = t2.Result;
                 
-                message = new CardMessageBuilder()
-                    .AddCard(new CardBuilder(Themes.Info, "#66CCFF", Sizes.Lg)
-                        .AddModules(new ModuleBuilder()
-                            .AddSection(SectionModes.Right, 
-                                new Kmarkdown(kmd),
-                                new Image(qrCode, "qrcode"))
+                    message = new CardMessageBuilder()
+                        .AddCard(new CardBuilder(Themes.Info, "#66CCFF", Sizes.Lg)
+                            .AddModules(new ModuleBuilder()
+                                .AddSection(SectionModes.Right, 
+                                    new Kmarkdown(kmd),
+                                    new Image(qrCode, "qrcode"))
+                                .Build())
                             .Build())
-                        .Build())
-                    .Build();
+                        .Build();
+                    break;
+                }
             }
 
             httpApiRequestService.GetResponse(new CreateMessageRequest()

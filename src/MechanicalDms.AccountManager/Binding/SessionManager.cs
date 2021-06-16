@@ -15,12 +15,17 @@ namespace MechanicalDms.AccountManager.Binding
     public static class SessionManager
     {
         private static readonly List<QrCodeLoginSession> Sessions = new();
+        private static bool _okForNewSession = true;
         
         public static Timer QueryTimer { get; set; }
         public static IHttpApiRequestService Api {private get; set; }
         
         public static async Task<string> NewSession(string khlId, ILogger<IPlugin> logger, IHttpApiRequestService api)
         {
+            if (_okForNewSession is false)
+            {
+                return "close";
+            }
             var client = new RestClient(new Uri("https://passport.bilibili.com"));
             var request = new RestRequest("qrcode/getLoginUrl", Method.GET); 
             var response = await client.ExecuteAsync(request);
@@ -52,7 +57,7 @@ namespace MechanicalDms.AccountManager.Binding
                     case 0:
                         Api.GetResponse(new CreateMessageRequest()
                         {
-                            ChannelId = Configuration.QueryChannel,
+                            ChannelId = Configuration.BindingChannel,
                             Content = $"(met){session._khlId}(met) 您已成功绑定 Bilibili 账号",
                             MessageType = 9,
                             TempTargetId = session._khlId
@@ -62,7 +67,7 @@ namespace MechanicalDms.AccountManager.Binding
                     case 2:
                         Api.GetResponse(new CreateMessageRequest()
                         {
-                            ChannelId = Configuration.QueryChannel,
+                            ChannelId = Configuration.BindingChannel,
                             Content = $"(met){session._khlId}(met) 登录超时",
                             MessageType = 9,
                             TempTargetId = session._khlId
@@ -76,6 +81,23 @@ namespace MechanicalDms.AccountManager.Binding
             {
                 Sessions.Remove(session);
             }
+        }
+
+        public static async Task WaitForFinish(ILogger<IPlugin> logger)
+        {
+            _okForNewSession = false;
+            while (Sessions.Count != 0)
+            {
+                logger.LogInformation($"MD-AM - 等待 {Sessions.Count} 个 Bilibili 登录 Session 结束");
+                await Task.Delay(5000);
+            }
+            logger.LogWarning("MD-AM - 所有 Bilibili 登录 Session 已结束");
+        }
+
+        public static void Enable(ILogger<IPlugin> logger)
+        {
+            _okForNewSession = true;
+            logger.LogInformation("MD-AM - 开始接受新的 Bilibili 登录 Session 请求");
         }
     }
 }

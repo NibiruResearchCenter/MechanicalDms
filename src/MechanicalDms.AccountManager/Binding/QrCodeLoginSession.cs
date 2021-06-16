@@ -203,7 +203,7 @@ namespace MechanicalDms.AccountManager.Binding
 
             _api.GetResponse(new CreateMessageRequest()
             {
-                ChannelId = Configuration.QueryChannel,
+                ChannelId = Configuration.BindingChannel,
                 Content = $"(met){_khlId}(met) 您已绑定 Bilibili 账号 {uid} {username} Lv.{level}，你可以输入 /account query 查询绑定状态",
                 MessageType = 9,
                 TempTargetId = _khlId
