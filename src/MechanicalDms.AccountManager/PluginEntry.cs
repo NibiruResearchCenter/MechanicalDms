@@ -142,7 +142,7 @@ namespace MechanicalDms.AccountManager
                         .SetFunction((args, logger, e, api) =>
                             BindingBilibiliCommandFunction(e, api, logger, args))))
                 .AddChildNode(new CommandNode("element")
-                    .AddAllowedChannel(Configuration.BindingChannel)
+                    .AddAllowedChannel(Configuration.ElementApplyChannel)
                     .AddAllowedRoles(Convert.ToInt64(Configuration.BilibiliBindingRole))
                     .SetFunction((args, logger, e, api) =>
                     {
