@@ -19,6 +19,7 @@ namespace MechanicalDms.AccountManager.Binding
         
         public static Timer QueryTimer { get; set; }
         public static IHttpApiRequestService Api {private get; set; }
+        public static ILogger<IPlugin> Logger { private get; set; }
         
         public static async Task<string> NewSession(string khlId, ILogger<IPlugin> logger, IHttpApiRequestService api)
         {
@@ -27,7 +28,9 @@ namespace MechanicalDms.AccountManager.Binding
                 return "close";
             }
             var client = new RestClient(new Uri("https://passport.bilibili.com"));
-            var request = new RestRequest("qrcode/getLoginUrl", Method.GET); 
+            var request = new RestRequest("qrcode/getLoginUrl", Method.GET);
+            request.AddHeader("User-Agent",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48");
             var response = await client.ExecuteAsync(request);
             
             if (response.StatusCode != HttpStatusCode.OK) 
@@ -55,13 +58,6 @@ namespace MechanicalDms.AccountManager.Binding
                 switch (session.Status)
                 {
                     case 0:
-                        Api.GetResponse(new CreateMessageRequest()
-                        {
-                            ChannelId = Configuration.BindingChannel,
-                            Content = $"(met){session._khlId}(met) 您已成功绑定 Bilibili 账号",
-                            MessageType = 9,
-                            TempTargetId = session._khlId
-                        });
                         readyToRemove.Add(session);
                         break;
                     case 2:
@@ -79,8 +75,10 @@ namespace MechanicalDms.AccountManager.Binding
 
             foreach (var session in readyToRemove)
             {
+                Logger.LogDebug($"MD-AM - 已移除 {session._khlId} 创建的 Session");
                 Sessions.Remove(session);
             }
+            Logger.LogDebug($"MD-AM - 剩余 Bilibili 登录 Session 数量 {Sessions.Count}");
         }
 
         public static async Task WaitForFinish(ILogger<IPlugin> logger)

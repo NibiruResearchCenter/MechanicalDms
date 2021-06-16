@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
 using KaiheilaBot.Core.Common.Builders.CardMessage;
@@ -57,6 +58,7 @@ namespace MechanicalDms.AccountManager
             #region Session Manager Setup
 
             SessionManager.Api = httpApiRequestService;
+            SessionManager.Logger = logger;
             SessionManager.QueryTimer = new Timer(){ Interval = 5 * 1000, Enabled = false, AutoReset = true };
             SessionManager.QueryTimer.Elapsed += SessionManager.QuerySessions;
             SessionManager.QueryTimer.Enabled = true;
@@ -392,33 +394,30 @@ namespace MechanicalDms.AccountManager
             var user = e.Data.Extra.Author;
 
             var roleStr = string.Join(' ', user.Roles);
-
-            using var khlOperation = new KaiheilaUserOperation();
             
             if (roleStr.Contains(Configuration.BilibiliBindingRole))
             {
-                var userInDb = khlOperation.GetKaiheilaUser(user.Id);
-                httpApiRequestService.GetResponse(new CreateMessageRequest()
+                var t1 = httpApiRequestService.GetResponse(new CreateMessageRequest()
                 {
-                    ChannelId = Configuration.ElementApplyChannel,
-                    Content = $"(met){e.Data.AuthorId}(met) 您已经绑定过了，" +
-                              $"Bilibili 用户名：{userInDb.BilibiliUser.Username} Lv.{userInDb.BilibiliUser.Level}",
+                    ChannelId = Configuration.BindingChannel,
+                    Content = $"(met){e.Data.AuthorId}(met) 您已经绑定过了",
                     MessageType = 9,
                     Quote = e.Data.MessageId,
                     TempTargetId = e.Data.AuthorId
-                }).Wait();
-                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，已经有过绑定，" + 
-                                  $"Bilibili 用户名：{userInDb.BilibiliUser.Username} Lv.{userInDb.BilibiliUser.Level}");
+                });
+                t1.Wait();
+                logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，已经有过绑定");
                 return 2;
             }
             
+            using var khlOperation = new KaiheilaUserOperation();
             khlOperation.AddOrUpdateKaiheilaUser(user.Id, user.Username, user.IdentifyNumber, roleStr);
 
             var khlId = e.Data.AuthorId;
 
-            var t1 = SessionManager.NewSession(khlId, logger, httpApiRequestService);
-            t1.Wait();
-            var url = t1.Result;
+            var t2 = SessionManager.NewSession(khlId, logger, httpApiRequestService);
+            t2.Wait();
+            var url = t2.Result;
 
             string message;
             
@@ -459,9 +458,9 @@ Bilibili API 请求失败，请重试
 二维码有效时间为 ***120*** 秒
 该消息仅您可见，刷新后将会消失";
 
-                    var t2 = QrCodeHelper.GenerateAndUploadQrCode(url, httpApiRequestService);
-                    t2.Wait();
-                    var qrCode = t2.Result;
+                    var t3 = QrCodeHelper.GenerateAndUploadQrCode(url, httpApiRequestService);
+                    t3.Wait();
+                    var qrCode = t3.Result;
                 
                     message = new CardMessageBuilder()
                         .AddCard(new CardBuilder(Themes.Info, "#66CCFF", Sizes.Lg)
@@ -475,15 +474,16 @@ Bilibili API 请求失败，请重试
                     break;
                 }
             }
-
-            httpApiRequestService.GetResponse(new CreateMessageRequest()
+            
+            var t4 = httpApiRequestService.GetResponse(new CreateMessageRequest() 
             {
-                ChannelId = e.Data.TargetId,
-                MessageType = 10,
-                Content = message,
-                Quote = e.Data.MessageId,
+                ChannelId = Configuration.BindingChannel, 
+                MessageType = 10, 
+                Content = message, 
+                Quote = e.Data.MessageId, 
                 TempTargetId = e.Data.AuthorId
-            });
+            }); 
+            t4.Wait();
             
             return 0;
         }

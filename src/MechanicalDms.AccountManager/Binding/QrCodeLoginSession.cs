@@ -43,6 +43,8 @@ namespace MechanicalDms.AccountManager.Binding
             _restClient = new RestClient(new Uri("https://passport.bilibili.com"));
             _restRequest = new RestRequest("qrcode/getLoginInfo", Method.POST);
             _restRequest.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+            _restRequest.AddHeader("User-Agent",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48");
             _restRequest.AddParameter("oauthKey", _token);
             _timeoutTimer = new Timer() { AutoReset = false, Interval = 121 * 1000, Enabled = false };
             _timeoutTimer.Elapsed += TimeoutSession;

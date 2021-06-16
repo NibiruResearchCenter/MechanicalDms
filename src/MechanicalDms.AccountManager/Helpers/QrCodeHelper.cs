@@ -17,9 +17,9 @@ namespace MechanicalDms.AccountManager.Helpers
             var payload = generator.ToString();
 
             var qrGenerator = new QRCodeGenerator();
-            var qrData = qrGenerator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.M);
+            var qrData = qrGenerator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.L);
             var qrCode = new PngByteQRCode(qrData);
-            var qrCodePngBytes = qrCode.GetGraphic(256);
+            var qrCodePngBytes = qrCode.GetGraphic(64);
 
             var filePath = Path.Combine(Configuration.PluginPath, "QrCodeCache", Guid.NewGuid() + ".png");
             await File.WriteAllBytesAsync(filePath, qrCodePngBytes);
