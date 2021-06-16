@@ -91,12 +91,28 @@ namespace MechanicalDms.AccountManager.Binding
         private void Binding(string DedeUserID, string DedeUserID__ckMd5, string SESSDATA, string bili_jct)
         {
             var user = GetUserData(DedeUserID, DedeUserID__ckMd5, SESSDATA, bili_jct);
+            var guardRole = user.GuardLevel switch
+            {
+                1 => Configuration.GovernorRole,
+                2 => Configuration.AdmiralRole,
+                3 => Configuration.CaptainRole,
+                _ => null
+            };
             using var biliOperation = new BilibiliUserOperation();
             using var khlOperation = new KaiheilaUserOperation();
             _logger.LogDebug($"MD-AM - 获取到 用户 {_khlId} 的 Bilibili 账户信息：" +
                              $"{user.Uid} {user.Username} Lv.{user.Level}，大航海等级：{user.GuardLevel}");
             biliOperation.AddOrUpdateBilibiliUser(user.Uid, user.Username, user.GuardLevel, user.Level);
             khlOperation.BindingBilibili(_khlId, user.Uid);
+            var khlUser = khlOperation.GetKaiheilaUser(_khlId);
+            var roles = khlUser.Roles.Split(' ').ToList();
+            if (guardRole is not null)
+            {
+                roles.Add(guardRole);
+            }
+            roles.Add(Configuration.BilibiliBindingRole);
+            khlUser.Roles = string.Join(' ', roles);
+            khlOperation.UpdateAndSave(khlUser);
         }
 
         private BilibiliUser GetUserData(string DedeUserID, string DedeUserID__ckMd5, string SESSDATA, string bili_jct)
