@@ -57,7 +57,7 @@ namespace MechanicalDms.AccountManager
             #region Session Manager Setup
 
             SessionManager.Api = httpApiRequestService;
-            SessionManager.QueryTimer = new Timer(){ Interval = 3 * 1000, Enabled = false, AutoReset = true };
+            SessionManager.QueryTimer = new Timer(){ Interval = 5 * 1000, Enabled = false, AutoReset = true };
             SessionManager.QueryTimer.Elapsed += SessionManager.QuerySessions;
             SessionManager.QueryTimer.Enabled = true;
 
