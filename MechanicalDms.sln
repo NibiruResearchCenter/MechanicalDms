@@ -20,6 +20,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Migration", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Operation", "src\MechanicalDms.Operation\MechanicalDms.Operation.csproj", "{D9CE77B1-B044-4945-835E-19A80DFFAF75}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{572A5ECB-1EBD-44B7-8658-89583AF3BD1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Functions.MinecraftPlayer", "src\MechanicalDms.Functions.MinecraftPlayer\MechanicalDms.Functions.MinecraftPlayer.csproj", "{3B98E97A-54A2-4CC1-9328-F91399F3FF12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +58,10 @@ Global
 		{D9CE77B1-B044-4945-835E-19A80DFFAF75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9CE77B1-B044-4945-835E-19A80DFFAF75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9CE77B1-B044-4945-835E-19A80DFFAF75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CC172755-84ED-478A-9CF5-83FA7767ED99} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
@@ -63,5 +71,6 @@ Global
 		{CD681FA9-6843-4CE5-92B4-993BA8D9C78D} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
 		{40D3214D-726D-4301-90F4-A6118823C1F2} = {55852037-60C2-4F15-95F9-FF2329DD0960}
 		{D9CE77B1-B044-4945-835E-19A80DFFAF75} = {55852037-60C2-4F15-95F9-FF2329DD0960}
+		{3B98E97A-54A2-4CC1-9328-F91399F3FF12} = {572A5ECB-1EBD-44B7-8658-89583AF3BD1A}
 	EndGlobalSection
 EndGlobal
