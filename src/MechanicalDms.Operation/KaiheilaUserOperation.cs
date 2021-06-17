@@ -80,6 +80,18 @@ namespace MechanicalDms.Operation
         }
 
         /// <summary>
+        /// 获取开黑啦用户
+        /// </summary>
+        /// <param name="uuid">Minecraft UUID</param>
+        /// <returns>开黑啦用户实体类</returns>
+        public KaiheilaUser GetKaiheilaUserByMinecraftUuid(string uuid)
+        {
+            return _db.KaiheilaUsers
+                .Include(x => x.MinecraftPlayer)
+                .FirstOrDefault(x => x.MinecraftPlayer.Uuid == uuid);
+        }
+        
+        /// <summary>
         /// 获取拥有大航海角色的开黑啦用户
         /// </summary>
         /// <returns>开黑啦用户实体类列表</returns>
