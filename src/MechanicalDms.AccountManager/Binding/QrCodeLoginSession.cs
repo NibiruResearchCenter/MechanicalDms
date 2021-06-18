@@ -44,7 +44,11 @@ namespace MechanicalDms.AccountManager.Binding
             _restRequest = new RestRequest("qrcode/getLoginInfo", Method.POST);
             _restRequest.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             _restRequest.AddHeader("User-Agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48");
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/91.0.4472.101 " +
+                "Safari/537.36 " +
+                "Edg/91.0.864.48");
             _restRequest.AddParameter("oauthKey", _token);
             _timeoutTimer = new Timer() { AutoReset = false, Interval = 121 * 1000, Enabled = false };
             _timeoutTimer.Elapsed += TimeoutSession;
@@ -219,13 +223,30 @@ namespace MechanicalDms.AccountManager.Binding
             
             _logger.LogDebug($"MD-AM - 已授予用户 {_khlId}，Bilibili {uid} {username} 角色：{guardLevel} - {guardRole}");
 
-            _api.GetResponse(new CreateMessageRequest()
+            bool status = false;
+            var retry = 2;
+            while (status is false && retry >= 0)
             {
-                ChannelId = Configuration.BindingChannel,
-                Content = $"(met){_khlId}(met) 您已绑定 Bilibili 账号 {uid} {username} Lv.{level}，你可以输入 /account query 查询绑定状态",
-                MessageType = 9,
-                TempTargetId = _khlId
-            }).Wait();
+                var t = _api.GetResponse(new CreateMessageRequest()
+                {
+                    ChannelId = Configuration.BindingChannel,
+                    Content =
+                        $"(met){_khlId}(met) 您已绑定 Bilibili 账号 {uid} {username} Lv.{level}，你可以输入 /account query 查询绑定状态",
+                    MessageType = 9,
+                    TempTargetId = _khlId
+                });
+                t.Wait();
+                status = t.Result.IsSuccessful;
+                retry--;
+                if (status is not true)
+                {
+                    _logger.LogWarning($"MD-AM - 用户 {_khlId} 的绑定成功消息发送失败，剩余尝试次数 {retry + 1}");
+                }
+                else
+                {
+                    _logger.LogInformation($"MD-AM - 用户 {_khlId} 的绑定成功消息发送成功");
+                }
+            }
 
             return new BilibiliUser()
             {

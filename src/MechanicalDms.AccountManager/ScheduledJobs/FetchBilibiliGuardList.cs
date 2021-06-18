@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,6 +26,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
 
         public async Task Execute(IJobExecutionContext context)
         {
+            var watch = new Stopwatch();
+            watch.Start();
             var list = await GetGuards(); 
             var jsonStr = JsonSerializer.Serialize(list);
             var now = DateTime.Now;
@@ -37,6 +40,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             sw.Close();
             Configuration.LatestGuardCache = Path.Combine(Configuration.PluginPath, "GuardCache", timeStr + ".json");
             await UpdateDatabaseAndRole(list);
+            watch.Stop();
+            Logger.LogInformation($"MD-AM - 缓存大航海列表成功，耗时 {watch.ElapsedMilliseconds} 毫秒");
         }
         
         private static async Task<List<Guard>> GetGuards()
