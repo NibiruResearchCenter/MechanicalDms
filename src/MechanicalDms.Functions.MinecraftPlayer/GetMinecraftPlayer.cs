@@ -58,11 +58,13 @@ namespace MechanicalDms.Functions.MinecraftPlayer
 
             if (qString.AllKeys.Contains("player_name") is true)
             {
+                var oldName = player.MinecraftPlayer.PlayerName;
                 if (qString["player_name"] != player.MinecraftPlayer.PlayerName)
                 {
                     player.MinecraftPlayer.PlayerName = qString["player_name"];
                 }
                 minecraftPlayerOperation.UpdateAndSave(player.MinecraftPlayer);
+                logger.LogInformation($"更改了 PlayerName：{oldName} --> {player.MinecraftPlayer.PlayerName}");
             }
 
             response.StatusCode = HttpStatusCode.OK;
