@@ -113,8 +113,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 }
             }
 
-            var message = $"MD-AM - 执行缓存大航海列表完成，总数：{list.Count}/{totalGuards}，" +
-                          $"总页数：{totalPages}，成功率：{list.Count / (double) totalGuards * 100}%";
+            var message = $"MD-AM - 执行缓存大航海列表完成，成功率：{list.Count / (double) totalGuards * 100}%";
             
             Logger.LogInformation(message);            
             
