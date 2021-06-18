@@ -26,14 +26,14 @@ namespace MechanicalDms.Functions.MinecraftPlayer
             var response = req.CreateResponse();
             response.Headers.Add("Content-Type", "application/json");
 
-            if (qString.AllKeys.Contains("uuid") is not true || qString.AllKeys.Contains("player_name") is not true)
+            if (qString.AllKeys.Contains("uuid") is not true)
             {
-                logger.LogWarning("不存在 UUID 或 PlayerName 检索字符串");
+                logger.LogWarning("不存在 UUID 检索字符串");
                 response.StatusCode = HttpStatusCode.NotFound;
                 await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
                 {
                     Code = -100,
-                    Message = "不存在 UUID 或 PlayerName 检索字符串",
+                    Message = "不存在 UUID 或 MinecraftPlayerName 检索字符串",
                     Data = null
                 }));
                 return response;
@@ -56,23 +56,27 @@ namespace MechanicalDms.Functions.MinecraftPlayer
                 return response;
             }
 
-            if (qString["player_name"] != player.MinecraftPlayer.PlayerName)
+            if (qString.AllKeys.Contains("player_name") is true)
             {
-                player.MinecraftPlayer.PlayerName = qString["player_name"];
+                if (qString["player_name"] != player.MinecraftPlayer.PlayerName)
+                {
+                    player.MinecraftPlayer.PlayerName = qString["player_name"];
+                }
+                minecraftPlayerOperation.UpdateAndSave(player.MinecraftPlayer);
             }
-            minecraftPlayerOperation.UpdateAndSave(player.MinecraftPlayer);
-            
+
             response.StatusCode = HttpStatusCode.OK;
             await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
             {
                 Code = 0,
                 Message = "请求成功",
-                Data = new Models.MinecraftPlayer()
+                Data = new Player()
                 {
                     KaiheilaUsername = player.Username,
                     KaiheilaUserIdentifyNumber = player.IdentifyNumber,
-                    PlayerName = player.MinecraftPlayer.PlayerName,
-                    Uuid = player.MinecraftPlayer.Uuid
+                    MinecraftPlayerName = player.MinecraftPlayer.PlayerName,
+                    MinecraftUuid = player.MinecraftPlayer.Uuid,
+                    BilibiliGuardLevel = player.BilibiliUser.GuardLevel
                 }
             }));
             logger.LogInformation($"检索到玩家 {player.Username}#{player.IdentifyNumber} " +

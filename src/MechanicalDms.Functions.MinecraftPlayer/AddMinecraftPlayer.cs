@@ -106,18 +106,19 @@ namespace MechanicalDms.Functions.MinecraftPlayer
             kaiheilaUserOperation.BindingMinecraft(body.KaiheilaUid, body.Uuid);
 
             logger.LogInformation($"请求成功，已添加 Minecraft Player UUID = {body.Uuid}，" +
-                                  $"PlayerName = {body.PlayerName}，开黑啦 UID = {body.KaiheilaUid}");
+                                  $"MinecraftPlayerName = {body.PlayerName}，开黑啦 UID = {body.KaiheilaUid}");
             response.StatusCode = HttpStatusCode.OK;
             await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
             {
                 Code = 0,
                 Message = "请求成功",
-                Data = new Models.MinecraftPlayer()
+                Data = new Player()
                 {
                     KaiheilaUsername = kaiheilaUser.Username,
                     KaiheilaUserIdentifyNumber = kaiheilaUser.IdentifyNumber,
-                    PlayerName = body.PlayerName,
-                    Uuid = body.Uuid
+                    MinecraftPlayerName = body.PlayerName,
+                    MinecraftUuid = body.Uuid,
+                    BilibiliGuardLevel = kaiheilaUser.BilibiliUser.GuardLevel
                 }
             }));
             return response;

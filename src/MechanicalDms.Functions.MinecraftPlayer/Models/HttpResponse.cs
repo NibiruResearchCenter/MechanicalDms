@@ -11,6 +11,6 @@ namespace MechanicalDms.Functions.MinecraftPlayer.Models
         public string Message { get; set; }
         
         [JsonPropertyName("data")]
-        public MinecraftPlayer Data { get; set; }
+        public Player Data { get; set; }
     }
 }
