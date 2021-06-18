@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MechanicalDms.Functions.MinecraftPlayer.Models
+namespace MechanicalDms.Functions.Models
 {
     public class AddMinecraftPlayerRequest
     {

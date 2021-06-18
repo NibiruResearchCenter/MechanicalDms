@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Operation", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{572A5ECB-1EBD-44B7-8658-89583AF3BD1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Functions.MinecraftPlayer", "src\MechanicalDms.Functions.MinecraftPlayer\MechanicalDms.Functions.MinecraftPlayer.csproj", "{3B98E97A-54A2-4CC1-9328-F91399F3FF12}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Functions", "src\MechanicalDms.Functions\MechanicalDms.Functions.csproj", "{3B98E97A-54A2-4CC1-9328-F91399F3FF12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

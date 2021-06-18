@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
 
-namespace MechanicalDms.Functions.MinecraftPlayer
+namespace MechanicalDms.Functions
 {
     public class Program
     {
