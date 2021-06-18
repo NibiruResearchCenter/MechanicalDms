@@ -88,6 +88,7 @@ namespace MechanicalDms.Operation
         {
             return _db.KaiheilaUsers
                 .Include(x => x.MinecraftPlayer)
+                .Include(x => x.BilibiliUser)
                 .FirstOrDefault(x => x.MinecraftPlayer.Uuid == uuid);
         }
         
