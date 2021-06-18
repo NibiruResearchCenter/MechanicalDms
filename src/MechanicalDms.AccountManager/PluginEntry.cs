@@ -409,6 +409,10 @@ namespace MechanicalDms.AccountManager
                 });
                 t1.Wait();
                 logger.LogWarning($"MD-AM - {e.Data.Extra.Author.Username} 执行绑定 Bilibili 指令失败，已经有过绑定");
+                if (t1.Result.IsSuccessful is not true)
+                {
+                    logger.LogWarning($"MD-AM - 消息 \"(met){e.Data.AuthorId}(met) 您已经绑定过了\" 发送失败");
+                }
                 return 2;
             }
             
@@ -476,16 +480,32 @@ Bilibili API 请求失败，请重试
                     break;
                 }
             }
-            
-            var t4 = httpApiRequestService.GetResponse(new CreateMessageRequest() 
+
+            var status = false;
+            var retry = 2;
+            while (status is false && retry >= 0)
             {
-                ChannelId = Configuration.BindingChannel, 
-                MessageType = 10, 
-                Content = message, 
-                Quote = e.Data.MessageId, 
-                TempTargetId = e.Data.AuthorId
-            }); 
-            t4.Wait();
+                var t4 = httpApiRequestService.GetResponse(new CreateMessageRequest() 
+                {
+                    ChannelId = Configuration.BindingChannel, 
+                    MessageType = 10, 
+                    Content = message, 
+                    Quote = e.Data.MessageId, 
+                    TempTargetId = e.Data.AuthorId
+                }); 
+                t4.Wait();
+                Task.Delay(500).Wait();
+                status = t4.Result.IsSuccessful;
+                retry--;
+                if (status is not true)
+                {
+                    logger.LogWarning($"MD-AM - 用户 {e.Data.AuthorId} 的二维码发送失败，剩余尝试次数 {retry + 1}");
+                }
+                else
+                {
+                    logger.LogInformation($"MD-AM - 用户 {e.Data.AuthorId} 二维码发送成功");
+                }
+            }
             
             return 0;
         }
