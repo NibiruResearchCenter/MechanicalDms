@@ -34,7 +34,7 @@ namespace MechanicalDms.Operation
                     Uid = uid,
                     Username = username,
                     IdentifyNumber = identifyNumber,
-                    Roles = roles
+                    Roles = roles.Trim()
                 };
 
                 _db.KaiheilaUsers.Add(khlUser);
@@ -43,7 +43,7 @@ namespace MechanicalDms.Operation
             {
                 user.Username = username;
                 user.IdentifyNumber = identifyNumber;
-                user.Roles = roles;
+                user.Roles = roles.Trim();
                 
                 _db.KaiheilaUsers.Update(user);
             }

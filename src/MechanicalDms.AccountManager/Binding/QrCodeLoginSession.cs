@@ -109,10 +109,10 @@ namespace MechanicalDms.AccountManager.Binding
             biliOperation.AddOrUpdateBilibiliUser(user.Uid, user.Username, user.GuardLevel, user.Level);
             khlOperation.BindingBilibili(_khlId, user.Uid);
             var khlUser = khlOperation.GetKaiheilaUser(_khlId);
-            var roles = khlUser.Roles.Split(' ').ToList();
+            var roles = khlUser.Roles.Trim().Split(' ').ToList();
             if (guardRole is not null)
             {
-                roles.Add(guardRole);
+                roles.Add(guardRole.Trim());
             }
             roles.Add(Configuration.BilibiliBindingRole);
             khlUser.Roles = string.Join(' ', roles);
@@ -223,7 +223,7 @@ namespace MechanicalDms.AccountManager.Binding
             
             _logger.LogDebug($"MD-AM - 已授予用户 {_khlId}，Bilibili {uid} {username} 角色：{guardLevel} - {guardRole}");
 
-            bool status = false;
+            var status = false;
             var retry = 2;
             while (status is false && retry >= 0)
             {

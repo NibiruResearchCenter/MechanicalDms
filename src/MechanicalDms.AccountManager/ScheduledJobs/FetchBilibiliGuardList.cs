@@ -167,7 +167,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     var role = roles[gl - 1];
                     user.BilibiliUser.GuardLevel = 0;
                     await RoleHelper.RevokeRole(user.Uid, role, HttpApiRequestService);
-                    var userRoles = user.Roles.Split(' ').ToList();
+                    var userRoles = user.Roles.Trim().Split(' ').ToList();
                     userRoles.Remove(role);
                     user.Roles = string.Join(' ', userRoles);
                     bilibiliUserOperation.UpdateAndSave(user.BilibiliUser);
@@ -182,7 +182,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     user.BilibiliUser.GuardLevel = current.GuardLevel;
                     await RoleHelper.RevokeRole(user.Uid, oldRole, HttpApiRequestService);
                     await RoleHelper.GrantRole(user.Uid, newRole, HttpApiRequestService);
-                    var userRoles = user.Roles.Split(' ').ToList();
+                    var userRoles = user.Roles.Trim().Split(' ').ToList();
                     userRoles.Remove(oldRole);
                     userRoles.Add(newRole);
                     user.Roles = string.Join(' ', userRoles);
