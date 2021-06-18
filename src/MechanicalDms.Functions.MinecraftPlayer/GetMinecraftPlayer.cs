@@ -14,7 +14,8 @@ namespace MechanicalDms.Functions.MinecraftPlayer
     public static class GetMinecraftPlayer
     {
         [Function("GetMinecraftPlayer")]
-        public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get")]
+        public static async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "get",Route = "minecraft-player/get")]
             HttpRequestData req,
             FunctionContext executionContext)
         {

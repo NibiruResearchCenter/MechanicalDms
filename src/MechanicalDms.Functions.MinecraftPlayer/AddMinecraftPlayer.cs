@@ -13,7 +13,8 @@ namespace MechanicalDms.Functions.MinecraftPlayer
     public static class AddMinecraftPlayer
     {
         [Function("AddMinecraftPlayer")]
-        public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")]
+        public static async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "minecraft-player/add")]
             HttpRequestData req,
             FunctionContext executionContext)
         {
