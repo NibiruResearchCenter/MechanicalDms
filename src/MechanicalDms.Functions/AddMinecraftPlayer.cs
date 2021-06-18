@@ -20,6 +20,7 @@ namespace MechanicalDms.Functions
         {
             var logger = executionContext.GetLogger("GetMinecraftPlayer");
             var response = req.CreateResponse();
+            response.Headers.Add("Content-Type", "application/json");
             var payload = await req.ReadAsStringAsync();
             if (payload is null)
             {
