@@ -18,5 +18,8 @@ namespace MechanicalDms.Functions.Models
 
         [JsonPropertyName("minecraft_player_name")]
         public string MinecraftPlayerName { get; set; }
+        
+        [JsonPropertyName("element")]
+        public int Element { get; set; }
     }
 }

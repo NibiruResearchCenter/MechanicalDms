@@ -118,7 +118,8 @@ namespace MechanicalDms.Functions
                     KaiheilaUserIdentifyNumber = kaiheilaUser.IdentifyNumber,
                     MinecraftPlayerName = body.PlayerName,
                     MinecraftUuid = body.Uuid,
-                    BilibiliGuardLevel = kaiheilaUser.BilibiliUser.GuardLevel
+                    BilibiliGuardLevel = kaiheilaUser.BilibiliUser.GuardLevel,
+                    Element = CheckElement.Get(kaiheilaUser.Roles)
                 }
             }));
             return response;

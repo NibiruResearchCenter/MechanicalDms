@@ -78,7 +78,8 @@ namespace MechanicalDms.Functions
                     KaiheilaUserIdentifyNumber = player.IdentifyNumber,
                     MinecraftPlayerName = player.MinecraftPlayer.PlayerName,
                     MinecraftUuid = player.MinecraftPlayer.Uuid,
-                    BilibiliGuardLevel = player.BilibiliUser.GuardLevel
+                    BilibiliGuardLevel = player.BilibiliUser.GuardLevel,
+                    Element = CheckElement.Get(player.Roles)
                 }
             }));
             logger.LogInformation($"检索到玩家 {player.Username}#{player.IdentifyNumber} " +
