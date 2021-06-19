@@ -33,7 +33,7 @@ namespace MechanicalDms.Functions
                 await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
                 {
                     Code = -100,
-                    Message = "不存在 UUID 或 MinecraftPlayerName 检索字符串",
+                    Message = "不存在 UUID 检索字符串",
                     Data = null
                 }));
                 return response;
