@@ -515,3 +515,6 @@ DbConfig.cs
 
 # Local Config File
 config.yml
+
+# Api docs
+api-doc.md
