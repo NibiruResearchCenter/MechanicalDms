@@ -3,13 +3,14 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using MechanicalDms.Functions.Common;
 using MechanicalDms.Functions.Models;
 using MechanicalDms.Operation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace MechanicalDms.Functions
+namespace MechanicalDms.Functions.HttpApis
 {
     public static class GetMinecraftPlayer
     {

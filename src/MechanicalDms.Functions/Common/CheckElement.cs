@@ -1,5 +1,5 @@
 // ReSharper disable ConvertIfStatementToReturnStatement
-namespace MechanicalDms.Functions
+namespace MechanicalDms.Functions.Common
 {
     public static class CheckElement
     {
