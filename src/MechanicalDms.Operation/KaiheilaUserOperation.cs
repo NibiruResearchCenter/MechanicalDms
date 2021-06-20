@@ -52,6 +52,48 @@ namespace MechanicalDms.Operation
         }
 
         /// <summary>
+        /// 添加角色
+        /// </summary>
+        /// <param name="uid">用户 UID</param>
+        /// <param name="role">角色 ID</param>
+        public void AddRole(string uid, string role)
+        {
+            var user = _db.KaiheilaUsers.FirstOrDefault(x => x.Uid == uid);
+            if (user is null)
+            {
+                return;
+            }
+
+            var roles = user.Roles.Trim().Split(' ').ToList();
+            roles = roles.Select(x => x.Trim()).Where(x => x != string.Empty).ToList();
+            roles.Add(role.Trim());
+            user.Roles = string.Join(' ', roles);
+            _db.KaiheilaUsers.Update(user);
+            _db.SaveChanges();
+        }
+        
+        /// <summary>
+        /// 添加角色
+        /// </summary>
+        /// <param name="uid">用户 UID</param>
+        /// <param name="role">角色 ID</param>
+        public void RemoveRole(string uid, string role)
+        {
+            var user = _db.KaiheilaUsers.FirstOrDefault(x => x.Uid == uid);
+            if (user is null)
+            {
+                return;
+            }
+
+            var roles = user.Roles.Trim().Split(' ').ToList();
+            roles = roles.Select(x => x.Trim()).Where(x => x != string.Empty).ToList();
+            roles.Remove(role.Trim());
+            user.Roles = string.Join(' ', roles);
+            _db.KaiheilaUsers.Update(user);
+            _db.SaveChanges();
+        }
+        
+        /// <summary>
         /// 删除开黑啦用户
         /// </summary>
         /// <param name="uid">开黑啦用户 UID</param>

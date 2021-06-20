@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -8,6 +10,8 @@ using MechanicalDms.Operation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using RestSharp;
+using HttpResponse = MechanicalDms.Functions.Models.HttpResponse;
 
 namespace MechanicalDms.Functions.HttpApis
 {
@@ -104,11 +108,48 @@ namespace MechanicalDms.Functions.HttpApis
                 return response;
             }
             
+            var sr = new StreamReader(Path.Join(Directory.GetCurrentDirectory(), "config.json"));
+            var jsonString = await sr.ReadToEndAsync();
+            sr.Close();
+            var config = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString);
+            if (config is null)
+            {
+                logger.LogError("配置文件读取错误");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
+                {
+                    Code = -700,
+                    Message = "配置文件读取错误",
+                    Data = null
+                }));
+                return response;
+            }
+
+            var restClient = new RestClient(new Uri(config["BaseUrl"]));
+            var restRequest = new RestRequest("guild-role/grant", Method.POST);
+            restRequest.AddHeader("Authorization", $"Bot {config["Token"]}");
+            restRequest.AddJsonBody(new Dictionary<string, string>()
+            {
+                {"guild_id", config["GuildId"]},
+                {"user_id", body.KaiheilaUid},
+                {"role_id", config["MinecraftBindingRole"]}
+            });
+            var restResponse = await restClient.ExecuteAsync(restRequest);
+            logger.LogInformation("请求开黑啦API完成");
+            if (restResponse.IsSuccessful is not true)
+            {
+                logger.LogError($"开黑啦API请求失败，Kaiheila UID = {body.KaiheilaUid}，" +
+                                $"Status = {restResponse.StatusCode}" +
+                                $"Body = {restResponse.Content}");
+            }
+            
             minecraftPlayerOperation.AddOrUpdateMinecraftUser(body.Uuid, body.PlayerName);
             kaiheilaUserOperation.BindingMinecraft(body.KaiheilaUid, body.Uuid);
-
+            kaiheilaUserOperation.AddRole(body.KaiheilaUid, config["MinecraftBindingRole"]);
+            
             logger.LogInformation($"请求成功，已添加 Minecraft Player UUID = {body.Uuid}，" +
                                   $"MinecraftPlayerName = {body.PlayerName}，开黑啦 UID = {body.KaiheilaUid}");
+            
             response.StatusCode = HttpStatusCode.OK;
             await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
             {
