@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace MechanicalDms.Functions.CronJobs
+namespace MechanicalDms.Functions.CronJobs.CheckDatabaseFormatJob
 {
     public static class CheckDatabaseFormat
     {

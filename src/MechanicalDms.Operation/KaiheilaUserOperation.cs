@@ -93,7 +93,7 @@ namespace MechanicalDms.Operation
         }
         
         /// <summary>
-        /// 获取拥有大航海角色的开黑啦用户
+        /// 获取拥有某个角色的开黑啦用户
         /// </summary>
         /// <returns>开黑啦用户实体类列表</returns>
         public IEnumerable<KaiheilaUser> GetKaiheilaUserWithRole(string role)
