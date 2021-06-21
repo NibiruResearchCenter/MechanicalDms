@@ -11,8 +11,10 @@ using KaiheilaBot.Core.Models.Requests.ChannelMessage;
 using KaiheilaBot.Core.Services.IServices;
 using MechanicalDms.AccountManager.Helpers;
 using MechanicalDms.AccountManager.Models;
+using MechanicalDms.Database;
 using MechanicalDms.Database.Models;
 using MechanicalDms.Operation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using RestSharp;
@@ -143,12 +145,11 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
 
         private static async Task UpdateDatabaseAndRole(IReadOnlyCollection<Guard> guards)
         {
-            using var kaiheilaUserOperation = new KaiheilaUserOperation();
-            using var bilibiliUserOperation = new BilibiliUserOperation();
-            var list = new List<KaiheilaUser>();
-            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.GovernorRole));
-            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.AdmiralRole));
-            list.AddRange(kaiheilaUserOperation.GetKaiheilaUserWithRole(Configuration.CaptainRole));
+            await using var db = new DmsDbContext();
+            var list = db.KaiheilaUsers
+                .Include(x => x.BilibiliUser)
+                .AsNoTracking()
+                .ToList();
 
             var roles = new List<string>()
             {
@@ -163,6 +164,10 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 var current = guards.FirstOrDefault(x => x.Uid == uid);
                 if (current is null)
                 {
+                    if (user.BilibiliUser.GuardLevel == 0)
+                    {
+                        continue;
+                    }
                     var gl = user.BilibiliUser.GuardLevel;
                     var role = roles[gl - 1];
                     user.BilibiliUser.GuardLevel = 0;
@@ -170,8 +175,9 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     var userRoles = user.Roles.Trim().Split(' ').ToList();
                     userRoles.Remove(role);
                     user.Roles = string.Join(' ', userRoles);
-                    bilibiliUserOperation.UpdateAndSave(user.BilibiliUser);
-                    kaiheilaUserOperation.UpdateAndSave(user);
+                    db.BilibiliUsers.Update(user.BilibiliUser);
+                    db.KaiheilaUsers.Update(user);
+                    await db.SaveChangesAsync();
                 }
                 else if (current.GuardLevel != user.BilibiliUser.GuardLevel)
                 {
@@ -186,8 +192,9 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     userRoles.Remove(oldRole);
                     userRoles.Add(newRole);
                     user.Roles = string.Join(' ', userRoles);
-                    bilibiliUserOperation.UpdateAndSave(user.BilibiliUser);
-                    kaiheilaUserOperation.UpdateAndSave(user);
+                    db.BilibiliUsers.Update(user.BilibiliUser);
+                    db.KaiheilaUsers.Update(user);
+                    await db.SaveChangesAsync();
                 }
             }
         }
