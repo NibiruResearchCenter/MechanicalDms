@@ -24,7 +24,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
         public static IHttpApiRequestService HttpApiRequestService { get; set; }
         public static ILogger<IPlugin> Logger { get; set; }
 
-        private static double successRate = 0;
+        private static double _successRate = 0;
 
         public async Task Execute(IJobExecutionContext context)
         {
@@ -44,7 +44,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             var changes = await UpdateDatabaseAndRole(list);
             watch.Stop();
             
-            var message = $"MD-AM - 缓存大航海列表成功，成功率 {successRate}%，修改 {changes} 条用户数据，耗时 {watch.ElapsedMilliseconds} 毫秒";
+            var message = $"MD-AM - 缓存大航海列表成功，成功率 {_successRate}%，修改 {changes} 条用户数据，耗时 {watch.ElapsedMilliseconds} 毫秒";
             Logger.LogInformation(message);
             
             await HttpApiRequestService.GetResponse(new CreateMessageRequest()
@@ -124,7 +124,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 }
             }
             
-            successRate = list.Count / (double) totalGuards * 100;
+            _successRate = list.Count / (double) totalGuards * 100;
             
             return list;
         }
