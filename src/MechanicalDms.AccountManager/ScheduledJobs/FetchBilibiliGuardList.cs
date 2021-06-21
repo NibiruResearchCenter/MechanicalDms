@@ -12,8 +12,6 @@ using KaiheilaBot.Core.Services.IServices;
 using MechanicalDms.AccountManager.Helpers;
 using MechanicalDms.AccountManager.Models;
 using MechanicalDms.Database;
-using MechanicalDms.Database.Models;
-using MechanicalDms.Operation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
@@ -25,6 +23,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
     {
         public static IHttpApiRequestService HttpApiRequestService { get; set; }
         public static ILogger<IPlugin> Logger { get; set; }
+
+        private static double successRate = 0;
 
         public async Task Execute(IJobExecutionContext context)
         {
@@ -41,9 +41,18 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             await sw.WriteAsync(jsonStr);
             sw.Close();
             Configuration.LatestGuardCache = Path.Combine(Configuration.PluginPath, "GuardCache", timeStr + ".json");
-            await UpdateDatabaseAndRole(list);
+            var changes = await UpdateDatabaseAndRole(list);
             watch.Stop();
-            Logger.LogInformation($"MD-AM - 缓存大航海列表成功，耗时 {watch.ElapsedMilliseconds} 毫秒");
+            
+            var message = $"MD-AM - 缓存大航海列表成功，成功率 {successRate}%，修改 {changes} 条用户数据，耗时 {watch.ElapsedMilliseconds} 毫秒";
+            Logger.LogInformation(message);
+            
+            await HttpApiRequestService.GetResponse(new CreateMessageRequest()
+            {
+                ChannelId = Configuration.AdminChannel,
+                Content = $"{DateTime.Now} {message}",
+                MessageType = 1
+            });
         }
         
         private static async Task<List<Guard>> GetGuards()
@@ -114,18 +123,9 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     }
                 }
             }
-
-            var message = $"MD-AM - 执行缓存大航海列表完成，成功率：{list.Count / (double) totalGuards * 100}%";
             
-            Logger.LogInformation(message);            
+            successRate = list.Count / (double) totalGuards * 100;
             
-            await HttpApiRequestService.GetResponse(new CreateMessageRequest()
-            {
-                ChannelId = Configuration.AdminChannel,
-                Content = $"{DateTime.Now} {message}",
-                MessageType = 1
-            });
-
             return list;
         }
         
@@ -143,7 +143,7 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             return response.StatusCode != HttpStatusCode.OK ? null : response.Content;
         }
 
-        private static async Task UpdateDatabaseAndRole(IReadOnlyCollection<Guard> guards)
+        private static async Task<int> UpdateDatabaseAndRole(IReadOnlyCollection<Guard> guards)
         {
             await using var db = new DmsDbContext();
             var list = db.KaiheilaUsers
@@ -157,7 +157,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 Configuration.AdmiralRole,
                 Configuration.CaptainRole
             };
-            
+
+            var changes = 0;
             foreach (var user in list)
             {
                 var uid = user.BilibiliUser.Uid;
@@ -178,6 +179,8 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     db.BilibiliUsers.Update(user.BilibiliUser);
                     db.KaiheilaUsers.Update(user);
                     await db.SaveChangesAsync();
+                    changes++;
+                    Logger.LogDebug($"MD-AM - 已修改 Bilibili UID = {user.BilibiliUser.Uid} 的大航海等级 {gl} -> 0");
                 }
                 else if (current.GuardLevel != user.BilibiliUser.GuardLevel)
                 {
@@ -195,8 +198,11 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                     db.BilibiliUsers.Update(user.BilibiliUser);
                     db.KaiheilaUsers.Update(user);
                     await db.SaveChangesAsync();
+                    changes++;
+                    Logger.LogDebug($"MD-AM - 已修改 Bilibili UID = {user.BilibiliUser.Uid} 的大航海等级 {oldGl} -> {newGl}");
                 }
             }
+            return changes;
         }
     }
 }
