@@ -147,8 +147,9 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
         {
             await using var db = new DmsDbContext();
             var list = db.KaiheilaUsers
-                .Include(x => x.BilibiliUser)
                 .AsNoTracking()
+                .Include(x => x.BilibiliUser)
+                .Where(x=> x.BilibiliUser != null)
                 .ToList();
 
             var roles = new List<string>()
@@ -159,17 +160,22 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
             };
 
             var changes = 0;
+                
             foreach (var user in list)
             {
-                var uid = user.BilibiliUser.Uid;
+                var uid = user.BilibiliUser.Uid; 
                 var current = guards.FirstOrDefault(x => x.Uid == uid);
-                if (current is null)
-                {
+                
+                if (current is null) 
+                { 
                     if (user.BilibiliUser.GuardLevel == 0)
                     {
+                        Logger.LogDebug($"MD-AM - Bilibili UID = {uid} 大航海等级为 0");
                         continue;
                     }
+
                     var gl = user.BilibiliUser.GuardLevel;
+                    Logger.LogDebug($"MD-AM - Bilibili UID = {uid} 大航海等级将从 {gl} 调整为 0");
                     var role = roles[gl - 1];
                     user.BilibiliUser.GuardLevel = 0;
                     await RoleHelper.RevokeRole(user.Uid, role, HttpApiRequestService);
@@ -186,20 +192,25 @@ namespace MechanicalDms.AccountManager.ScheduledJobs
                 {
                     var oldGl = user.BilibiliUser.GuardLevel;
                     var newGl = current.GuardLevel;
-                    var oldRole = roles[oldGl - 1];
-                    var newRole = roles[newGl - 1];
-                    user.BilibiliUser.GuardLevel = current.GuardLevel;
-                    await RoleHelper.RevokeRole(user.Uid, oldRole, HttpApiRequestService);
-                    await RoleHelper.GrantRole(user.Uid, newRole, HttpApiRequestService);
+                    Logger.LogDebug($"MD-AM - Bilibili UID = {uid} 大航海等级将从 {oldGl} 调整为 {newGl}");
                     var userRoles = user.Roles.Trim().Split(' ').ToList();
-                    userRoles.Remove(oldRole);
+                    if (oldGl != 0)
+                    {
+                        var oldRole = roles[oldGl - 1];
+                        await RoleHelper.RevokeRole(user.Uid, oldRole, HttpApiRequestService);
+                        userRoles.Remove(oldRole);
+                    }
+                    var newRole = roles[newGl - 1];
+                    await RoleHelper.GrantRole(user.Uid, newRole, HttpApiRequestService);
                     userRoles.Add(newRole);
                     user.Roles = string.Join(' ', userRoles);
+                    user.BilibiliUser.GuardLevel = current.GuardLevel;
                     db.BilibiliUsers.Update(user.BilibiliUser);
                     db.KaiheilaUsers.Update(user);
-                    await db.SaveChangesAsync();
-                    changes++;
-                    Logger.LogDebug($"MD-AM - 已修改 Bilibili UID = {user.BilibiliUser.Uid} 的大航海等级 {oldGl} -> {newGl}");
+                    await db.SaveChangesAsync(); 
+                    changes++; 
+                    Logger.LogDebug(
+                        $"MD-AM - 已修改 Bilibili UID = {user.BilibiliUser.Uid} 的大航海等级 {oldGl} -> {newGl}");
                 }
             }
             return changes;
