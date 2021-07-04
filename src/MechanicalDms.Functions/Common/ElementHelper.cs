@@ -31,26 +31,6 @@ namespace MechanicalDms.Functions.Common
             }
             return false;
         }
-        public static int GetElementFromDiscord(string roles)
-        {
-            if (roles.Contains("860617905216553010"))
-            {
-                return 2;
-            }
-            if (roles.Contains("860618024767455252"))
-            {
-                return 3;
-            }
-            if (roles.Contains("860618316813041735"))
-            {
-                return 4;
-            }
-            if (roles.Contains("860618475965644800"))
-            {
-                return 5;
-            }
-            return 0;
-        }
         public static bool IsGuardFromDiscord(string roles)
         {
             if (roles.Contains("785014197213724683"))
