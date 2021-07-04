@@ -4,14 +4,23 @@ namespace MechanicalDms.Functions.Models
 {
     public record Player
     {
-        [JsonPropertyName("kaiheila_username")]
-        public string KaiheilaUsername { get; set; }
+        [JsonPropertyName("username")]
+        public string Username { get; set; }
         
-        [JsonPropertyName("kaiheila_user_identify_number")]
-        public string KaiheilaUserIdentifyNumber { get; set; }
-
-        [JsonPropertyName("bilibili_guard_level")]
-        public int BilibiliGuardLevel { get; set; }
+        /// <summary>
+        /// Kaiheila / Discord
+        /// </summary>
+        [JsonPropertyName("from")]
+        public string From { get; set; }
+        
+        [JsonPropertyName("identify_number")]
+        public string IdentifyNumber { get; set; }
+        
+        /// <summary>
+        /// Bilibili Guard Level / Twitch Subscriber Tier
+        /// </summary>
+        [JsonPropertyName("supporter_tier")]
+        public int SupporterTier { get; set; }
 
         [JsonPropertyName("minecraft_uuid")]
         public string MinecraftUuid { get; set; }
@@ -21,5 +30,8 @@ namespace MechanicalDms.Functions.Models
         
         [JsonPropertyName("element")]
         public int Element { get; set; }
+        
+        [JsonPropertyName("is_guard")]
+        public bool IsGuard { get; set; }
     }
 }

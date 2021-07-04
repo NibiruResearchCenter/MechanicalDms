@@ -157,12 +157,12 @@ namespace MechanicalDms.Functions.HttpApis
                 Message = "请求成功",
                 Data = new Player()
                 {
-                    KaiheilaUsername = kaiheilaUser.Username,
-                    KaiheilaUserIdentifyNumber = kaiheilaUser.IdentifyNumber,
+                    Username = kaiheilaUser.Username,
+                    IdentifyNumber = kaiheilaUser.IdentifyNumber,
                     MinecraftPlayerName = body.PlayerName,
                     MinecraftUuid = body.Uuid,
-                    BilibiliGuardLevel = kaiheilaUser.BilibiliUser.GuardLevel,
-                    Element = CheckElement.Get(kaiheilaUser.Roles)
+                    Element = ElementHelper.GetElementFromKaiheila(kaiheilaUser.Roles),
+                    IsGuard = ElementHelper.IsGuardFromKaiheila(kaiheilaUser.Roles)
                 }
             }));
             return response;
