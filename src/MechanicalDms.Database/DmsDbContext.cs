@@ -7,6 +7,7 @@ namespace MechanicalDms.Database
     {
         public DbSet<KaiheilaUser> KaiheilaUsers { get; set; }
         public DbSet<BilibiliUser> BilibiliUsers { get; set; }
+        public DbSet<DiscordUser> DiscordUser { get; set; }
         public DbSet<MinecraftPlayer> MinecraftPlayers { get; set; }
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -21,6 +22,10 @@ namespace MechanicalDms.Database
                 .ValueGeneratedNever();
 
             modelBuilder.Entity<KaiheilaUser>()
+                .Property(p => p.Uid)
+                .ValueGeneratedNever();
+
+            modelBuilder.Entity<DiscordUser>()
                 .Property(p => p.Uid)
                 .ValueGeneratedNever();
 

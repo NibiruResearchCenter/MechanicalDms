@@ -10,5 +10,7 @@ namespace MechanicalDms.Database.Models
         public string Uuid { get; set; }
         [Required]
         public string PlayerName { get; set; }
+        [Required]
+        public bool IsLegitCopy { get; set; }
     }
 }
