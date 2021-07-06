@@ -25,7 +25,7 @@ namespace MechanicalDms.Functions.HttpApis
             FunctionContext context)
         {
             var logger = context.GetLogger("DiscordCommandHandler");
-            logger.LogInformation("Start to handle new discord command");
+            logger.LogInformation("Start to handle new discord command.");
 
             // Deserialize command object
             DiscordSlashCommand command;
@@ -34,7 +34,7 @@ namespace MechanicalDms.Functions.HttpApis
                 command = JsonSerializer.Deserialize<DiscordSlashCommand>(myQueueItem);
                 if (command is null)
                 {
-                    throw new NullReferenceException("Deserialized result is null");
+                    throw new NullReferenceException("Deserialized result is null.");
                 }
             }
             catch (Exception e)
@@ -111,7 +111,7 @@ namespace MechanicalDms.Functions.HttpApis
                         logger.LogError($"ERROR: Failed to get element param, user input error, {e.Message}");
                         return;
                     }
-                    logger.LogInformation("Get <element param> successfully.");
+                    logger.LogInformation($"Get <element param> successfully. Element = {elementParam}.");
                     
                     // Add to database
                     var discordUser = new DiscordUser()
