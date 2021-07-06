@@ -76,7 +76,7 @@ namespace MechanicalDms.Functions.HttpApis
             }
             
             await using var db = new DmsDbContext();
-            if (db.DiscordUser.AsNoTracking().FirstOrDefault(x => x.MinecraftPlayer.Uuid == body.Uuid) is not null ||
+            if (db.DiscordUsers.AsNoTracking().FirstOrDefault(x => x.MinecraftPlayer.Uuid == body.Uuid) is not null ||
                 db.KaiheilaUsers.AsNoTracking().FirstOrDefault(x => x.MinecraftPlayer.Uuid == body.Uuid) is not null)
             {
                 logger.LogError("该 Minecraft 玩家配置已绑定一个用户");
@@ -94,7 +94,7 @@ namespace MechanicalDms.Functions.HttpApis
             if (body.Platform == "discord")
             {
                 logger.LogInformation("玩家平台: Discord");
-                var discordUser = db.DiscordUser
+                var discordUser = db.DiscordUsers
                     .Include(x=>x.MinecraftPlayer)
                     .FirstOrDefault(x => x.Uid == body.Uid);
                 if (discordUser is null)
@@ -139,7 +139,7 @@ namespace MechanicalDms.Functions.HttpApis
                 }
 
                 discordUser.MinecraftPlayer = minecraftPlayer;
-                db.DiscordUser.Update(discordUser);
+                db.DiscordUsers.Update(discordUser);
                 await db.SaveChangesAsync();
                 
                 logger.LogInformation($"请求成功，已添加 Minecraft Player UUID = {body.Uuid}，" +

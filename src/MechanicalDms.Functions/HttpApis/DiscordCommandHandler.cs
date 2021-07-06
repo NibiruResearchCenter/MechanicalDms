@@ -80,7 +80,7 @@ namespace MechanicalDms.Functions.HttpApis
                     await using var db = new DmsDbContext();
 
                     // Check if user have already registered
-                    var user = db.DiscordUser.FirstOrDefault(x => x.Uid == command.Member.User.Id);
+                    var user = db.DiscordUsers.FirstOrDefault(x => x.Uid == command.Member.User.Id);
                     if (user is not null)
                     {
                         logger.LogWarning($"WARN: User {command.Member.User.Username}#{command.Member.User.Discriminator} " +
@@ -122,7 +122,7 @@ namespace MechanicalDms.Functions.HttpApis
                         Element = ElementHelper.GetElementFromString(elementParam),
                         IsGuard = ElementHelper.IsGuardFromDiscord(string.Join(' ', command.Member.Roles))
                     };
-                    db.DiscordUser.Add(discordUser);
+                    db.DiscordUsers.Add(discordUser);
                     await db.SaveChangesAsync();
                     logger.LogInformation("Database updated. Return message.");
                     
@@ -148,7 +148,7 @@ namespace MechanicalDms.Functions.HttpApis
                     
                     // Get user data from database
                     await using var db = new DmsDbContext();
-                    var user = db.DiscordUser
+                    var user = db.DiscordUsers
                         .Include(x => x.MinecraftPlayer)
                         .AsNoTracking()
                         .FirstOrDefault(x => x.Uid == command.Member.User.Id);

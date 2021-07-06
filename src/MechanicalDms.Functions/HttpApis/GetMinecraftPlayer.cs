@@ -47,7 +47,7 @@ namespace MechanicalDms.Functions.HttpApis
                 .Include(x => x.MinecraftPlayer)
                 .FirstOrDefault(x => x.MinecraftPlayer.Uuid == qString["uuid"]);
             
-            var discordPlayer = db.DiscordUser
+            var discordPlayer = db.DiscordUsers
                 .AsNoTracking()
                 .Include(x => x.MinecraftPlayer)
                 .FirstOrDefault(x => x.MinecraftPlayer.Uuid == qString["uuid"]);
@@ -80,7 +80,7 @@ namespace MechanicalDms.Functions.HttpApis
                     if (qString["player_name"] != discordPlayer.MinecraftPlayer.PlayerName)
                     {
                         discordPlayer.MinecraftPlayer.PlayerName = qString["player_name"];
-                        db.DiscordUser.Update(discordPlayer);
+                        db.DiscordUsers.Update(discordPlayer);
                         await db.SaveChangesAsync();
                         logger.LogInformation($"更改了 PlayerName：{oldName} --> {discordPlayer.MinecraftPlayer.PlayerName}");
                     }
