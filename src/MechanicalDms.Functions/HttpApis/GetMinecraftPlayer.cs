@@ -3,11 +3,12 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using MechanicalDms.Database;
 using MechanicalDms.Functions.Common;
 using MechanicalDms.Functions.Models;
-using MechanicalDms.Operation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicalDms.Functions.HttpApis
@@ -40,12 +41,24 @@ namespace MechanicalDms.Functions.HttpApis
                 return response;
             }
 
-            using var kaiheilaUserOperation = new KaiheilaUserOperation();
-            using var minecraftPlayerOperation = new MinecraftPlayerOperation();
-            var player = kaiheilaUserOperation.GetKaiheilaUserByMinecraftUuid(qString["uuid"]);
+            await using var db = new DmsDbContext();
+            var kaiheilaPlayer = db.KaiheilaUsers
+                .AsNoTracking()
+                .Include(x => x.MinecraftPlayer)
+                .FirstOrDefault(x => x.MinecraftPlayer.Uuid == qString["uuid"]);
+            
+            var discordPlayer = db.DiscordUser
+                .AsNoTracking()
+                .Include(x => x.MinecraftPlayer)
+                .FirstOrDefault(x => x.MinecraftPlayer.Uuid == qString["uuid"]);
+            
+            var player = new Player();
 
-            if (player is null)
+            // 找不到用户
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
+            if (kaiheilaPlayer is null && discordPlayer is null)
             {
+                logger.LogInformation($"找不到玩家 UUID = {qString["uuid"]}");
                 response.StatusCode = HttpStatusCode.NotFound;
                 await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
                 {
@@ -56,16 +69,54 @@ namespace MechanicalDms.Functions.HttpApis
                 logger.LogWarning($"玩家 UUID = {qString["uuid"]} 不存在");
                 return response;
             }
-
-            if (qString.AllKeys.Contains("player_name") is true)
+            
+            // Discord 用户
+            if (kaiheilaPlayer is null)
             {
-                var oldName = player.MinecraftPlayer.PlayerName;
-                if (qString["player_name"] != player.MinecraftPlayer.PlayerName)
+                logger.LogInformation("找到玩家属于 Discord 平台");
+                if (qString.AllKeys.Contains("player_name") is true)
                 {
-                    player.MinecraftPlayer.PlayerName = qString["player_name"];
+                    var oldName = discordPlayer.MinecraftPlayer.PlayerName;
+                    if (qString["player_name"] != discordPlayer.MinecraftPlayer.PlayerName)
+                    {
+                        discordPlayer.MinecraftPlayer.PlayerName = qString["player_name"];
+                        db.DiscordUser.Update(discordPlayer);
+                        await db.SaveChangesAsync();
+                        logger.LogInformation($"更改了 PlayerName：{oldName} --> {discordPlayer.MinecraftPlayer.PlayerName}");
+                    }
                 }
-                minecraftPlayerOperation.UpdateAndSave(player.MinecraftPlayer);
-                logger.LogInformation($"更改了 PlayerName：{oldName} --> {player.MinecraftPlayer.PlayerName}");
+
+                player.Username = discordPlayer.Username;
+                player.IdentifyNumber = discordPlayer.IdentifyNumber;
+                player.MinecraftUuid = discordPlayer.MinecraftPlayer.Uuid;
+                player.MinecraftPlayerName = discordPlayer.MinecraftPlayer.PlayerName;
+                player.Element = discordPlayer.Element;
+                player.IsGuard = discordPlayer.IsGuard;
+                player.From = "discord";
+            }
+            // 开黑啦用户
+            else if (discordPlayer is null)
+            {
+                logger.LogInformation("找到玩家属于 Kaiheila 平台");
+                if (qString.AllKeys.Contains("player_name") is true)
+                {
+                    var oldName = kaiheilaPlayer.MinecraftPlayer.PlayerName;
+                    if (qString["player_name"] != kaiheilaPlayer.MinecraftPlayer.PlayerName)
+                    {
+                        kaiheilaPlayer.MinecraftPlayer.PlayerName = qString["player_name"];
+                        db.KaiheilaUsers.Update(kaiheilaPlayer);
+                        await db.SaveChangesAsync();
+                        logger.LogInformation($"更改了 PlayerName：{oldName} --> {kaiheilaPlayer.MinecraftPlayer.PlayerName}");
+                    }
+                }
+
+                player.Username = kaiheilaPlayer.Username;
+                player.IdentifyNumber = kaiheilaPlayer.IdentifyNumber;
+                player.MinecraftUuid = kaiheilaPlayer.MinecraftPlayer.Uuid;
+                player.MinecraftPlayerName = kaiheilaPlayer.MinecraftPlayer.PlayerName;
+                player.Element = ElementHelper.GetElementFromKaiheila(kaiheilaPlayer.Roles);
+                player.IsGuard = ElementHelper.IsGuardFromKaiheila(kaiheilaPlayer.Roles);
+                player.From = "kaiheila";
             }
 
             response.StatusCode = HttpStatusCode.OK;
@@ -73,18 +124,10 @@ namespace MechanicalDms.Functions.HttpApis
             {
                 Code = 0,
                 Message = "请求成功",
-                Data = new Player()
-                {
-                    Username = player.Username,
-                    IdentifyNumber = player.IdentifyNumber,
-                    MinecraftPlayerName = player.MinecraftPlayer.PlayerName,
-                    MinecraftUuid = player.MinecraftPlayer.Uuid,
-                    Element = ElementHelper.GetElementFromKaiheila(player.Roles),
-                    IsGuard = ElementHelper.IsGuardFromKaiheila(player.Roles)
-                }
+                Data = player
             }));
-            logger.LogInformation($"检索到玩家 {player.Username}#{player.IdentifyNumber} " +
-                                  $"UUID = {player.MinecraftPlayer.Uuid}，Name = {player.MinecraftPlayer.PlayerName}");
+            logger.LogInformation($"在 {player.From} 平台检索到玩家 {player.Username}#{player.IdentifyNumber} " +
+                                  $"UUID = {player.MinecraftUuid}，Name = {player.MinecraftPlayerName}");
             return response;
         }
     }

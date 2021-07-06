@@ -8,7 +8,7 @@ namespace MechanicalDms.Functions.Models
         public string Username { get; set; }
         
         /// <summary>
-        /// Kaiheila / Discord
+        /// kaiheila / discord
         /// </summary>
         [JsonPropertyName("from")]
         public string From { get; set; }
@@ -16,12 +16,6 @@ namespace MechanicalDms.Functions.Models
         [JsonPropertyName("identify_number")]
         public string IdentifyNumber { get; set; }
         
-        /// <summary>
-        /// Bilibili Guard Level / Twitch Subscriber Tier
-        /// </summary>
-        [JsonPropertyName("supporter_tier")]
-        public int SupporterTier { get; set; }
-
         [JsonPropertyName("minecraft_uuid")]
         public string MinecraftUuid { get; set; }
 
