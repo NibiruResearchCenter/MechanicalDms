@@ -25,7 +25,8 @@ namespace MechanicalDms.Functions.HttpApis
             var logger = executionContext.GetLogger("CrackedMinecraftPlayer");
             logger.LogInformation($"收到请求 Method = {req.Method}, URL = {req.Url}");
             var response = req.CreateResponse();
-
+            response.Headers.Add("Content-Type", "application/json; charset=utf-8");
+            
             await using var db = new DmsDbContext();
             
             switch (req.Method.ToLower())
@@ -38,11 +39,11 @@ namespace MechanicalDms.Functions.HttpApis
                     {
                         logger.LogError("ERROR: 不存在 uuid 或 pass 检索字符串");
                         response.StatusCode = HttpStatusCode.NotFound;
-                        await response.WriteAsJsonAsync(new GetCrackedPlayerResponse()
+                        await response.WriteStringAsync(JsonSerializer.Serialize(new GetCrackedPlayerResponse()
                         {
                             Code = -1100,
                             VerifyStatus = false
-                        });
+                        }));
                         return response;
                     }
 
@@ -53,21 +54,21 @@ namespace MechanicalDms.Functions.HttpApis
                     {
                         logger.LogError($"不存在该玩家，UUID = {qString["uuid"]}");
                         response.StatusCode = HttpStatusCode.NotFound;
-                        await response.WriteAsJsonAsync(new GetCrackedPlayerResponse()
+                        await response.WriteStringAsync(JsonSerializer.Serialize(new GetCrackedPlayerResponse()
                         {
                             Code = -1200,
                             VerifyStatus = false
-                        });
+                        }));
                         return response;
                     }
 
                     logger.LogInformation($"已找到玩家，密码验证结果 {(cPlayer.Password == qString["pass"]).ToString()}");
                     response.StatusCode = HttpStatusCode.OK;
-                    await response.WriteAsJsonAsync(new GetCrackedPlayerResponse()
+                    await response.WriteStringAsync(JsonSerializer.Serialize(new GetCrackedPlayerResponse()
                     {
                         Code = 0,
                         VerifyStatus = cPlayer.Password == qString["pass"]
-                    });
+                    }));
                     return response;
                 }
                 case "post":
@@ -77,11 +78,11 @@ namespace MechanicalDms.Functions.HttpApis
                     if (payload is null)
                     {
                         response.StatusCode = HttpStatusCode.BadRequest;
-                        await response.WriteAsJsonAsync(new AddCrackedPlayerResponse()
+                        await response.WriteStringAsync(JsonSerializer.Serialize(new AddCrackedPlayerResponse()
                         {
                             Code = -1500,
                             Uuid = ""
-                        });
+                        }));
                         return response;
                     }
 
@@ -102,11 +103,11 @@ namespace MechanicalDms.Functions.HttpApis
                     {
                         logger.LogError($"反序列化请求Body出错，{e.Message}");
                         response.StatusCode = HttpStatusCode.BadRequest;
-                        await response.WriteAsJsonAsync(new AddCrackedPlayerResponse()
+                        await response.WriteStringAsync(JsonSerializer.Serialize(new AddCrackedPlayerResponse()
                         {
                             Code = -1600,
                             Uuid = ""
-                        });
+                        }));
                         return response;
                     }
 
@@ -118,11 +119,11 @@ namespace MechanicalDms.Functions.HttpApis
                     {
                         logger.LogInformation($"该玩家已存在，UUID = {cPlayer.Uuid}");
                         response.StatusCode = HttpStatusCode.BadRequest;
-                        await response.WriteAsJsonAsync(new AddCrackedPlayerResponse()
+                        await response.WriteStringAsync(JsonSerializer.Serialize(new AddCrackedPlayerResponse()
                         {
                             Code = -1700,
                             Uuid = ""
-                        });
+                        }));
                         return response;
                     }
                     
@@ -134,22 +135,22 @@ namespace MechanicalDms.Functions.HttpApis
                     await db.SaveChangesAsync();
 
                     response.StatusCode = HttpStatusCode.OK;
-                    await response.WriteAsJsonAsync(new AddCrackedPlayerResponse()
+                    await response.WriteStringAsync(JsonSerializer.Serialize(new AddCrackedPlayerResponse()
                     {
                         Code = 0,
                         Uuid = cPlayer.Uuid
-                    });
+                    }));
                     logger.LogInformation($"Cracked Player 添加成功，UUID = {cPlayer.Uuid}");
                     return response;
                 }
                 default:
                     logger.LogError("未知错误");
                     response.StatusCode = HttpStatusCode.NotAcceptable;
-                    await response.WriteAsJsonAsync(new AddCrackedPlayerResponse()
+                    await response.WriteStringAsync(JsonSerializer.Serialize(new AddCrackedPlayerResponse()
                     {
                         Code = -1800,
                         Uuid = ""
-                    });
+                    }));
                     return response;
             }
         }
