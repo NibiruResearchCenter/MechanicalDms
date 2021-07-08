@@ -194,9 +194,9 @@ namespace MechanicalDms.AccountManager
                         var requestElement = args.First();
                         var requestElementRole = requestElement switch
                         {
-                            "herba" => Configuration.HerbaElementRole,
+                            "wind" => Configuration.HerbaElementRole,
                             "aqua" => Configuration.AquaElementRole,
-                            "flame" => Configuration.FlameElementRole,
+                            "fire" => Configuration.FlameElementRole,
                             "earth" => Configuration.EarthElementRole,
                             _ => null
                         };

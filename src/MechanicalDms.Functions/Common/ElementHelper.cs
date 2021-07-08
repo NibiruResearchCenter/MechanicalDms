@@ -46,7 +46,6 @@ namespace MechanicalDms.Functions.Common
             }
             return 0;
         }
-
         public static ulong GetElementRoleForDiscord(int element)
         {
             return element switch
@@ -58,7 +57,6 @@ namespace MechanicalDms.Functions.Common
                 _ => 0
             };
         }
-        
         public static bool IsGuardFromKaiheila(string roles)
         {
             if (roles.Contains("254775") || roles.Contains("218176") || roles.Contains("218131"))
@@ -80,10 +78,10 @@ namespace MechanicalDms.Functions.Common
             var e = element.ToLower().Trim();
             return e switch
             {
-                "gold" => 1,
-                "herba" => 2,
+                "energy" => 1,
+                "wind" => 2,
                 "aqua" => 3,
-                "flame" => 4,
+                "fire" => 4,
                 "earth" => 5,
                 _ => 0
             };
@@ -92,9 +90,9 @@ namespace MechanicalDms.Functions.Common
         {
             return element switch
             {
-                2 => "Herba",
+                2 => "Wind",
                 3 => "Aqua",
-                4 => "Flame",
+                4 => "Fire",
                 5 => "Earth",
                 _ => ""
             };
@@ -103,7 +101,7 @@ namespace MechanicalDms.Functions.Common
         {
             return isGuard switch
             {
-                true => "Gold",
+                true => "Energy",
                 false => ""
             };
         }

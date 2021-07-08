@@ -175,7 +175,7 @@ namespace MechanicalDms.Functions.HttpApis
                         returnValue.Add("content", $"Your data has been found in the database.\n" +
                                                    $"Discord Username = {user.Username}#{user.IdentifyNumber}\n" +
                                                    $"Discord UID = {user.Uid}\n" +
-                                                   $"Element = {ElementHelper.GetElementString(user.Element)} {ElementHelper.GetGuardString(user.IsGuard)}\n" +
+                                                   $"Chattor Element = {ElementHelper.GetElementString(user.Element)} {ElementHelper.GetGuardString(user.IsGuard)}\n" +
                                                    $"Minecraft UUID = {mcUuid}\n" +
                                                    $"Minecraft Username = {mcUsername}\n" +
                                                    $"Minecraft Account = {mcAccountStatus}");
