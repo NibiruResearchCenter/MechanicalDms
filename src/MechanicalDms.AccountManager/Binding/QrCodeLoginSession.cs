@@ -231,7 +231,7 @@ namespace MechanicalDms.AccountManager.Binding
                 {
                     ChannelId = Configuration.BindingChannel,
                     Content =
-                        $"(met){_khlId}(met) 您已绑定 Bilibili 账号 {uid} {username} Lv.{level}，你可以输入 /account query 查询绑定状态",
+                        $"(met){_khlId}(met) 您的开黑啦 UID = {_khlId}，您已绑定 Bilibili 账号 {uid} {username} Lv.{level}，您可以输入 /account query 查询绑定状态",
                     MessageType = 9,
                     TempTargetId = _khlId
                 });

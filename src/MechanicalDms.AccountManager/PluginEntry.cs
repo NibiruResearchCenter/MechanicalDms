@@ -327,11 +327,13 @@ namespace MechanicalDms.AccountManager
 
             var mcUuid = "NaN"; 
             var mcPlayerName = "NaN";
+            var mcAccount = "NaN";
             
             if (user.MinecraftPlayer is not null) 
             { 
                 mcUuid = user.MinecraftPlayer.Uuid; 
                 mcPlayerName = user.MinecraftPlayer.PlayerName;
+                mcAccount = user.MinecraftPlayer.IsLegitCopy ? "正版帐号" : "离线模式";
             }
 
             var biliUid = (long) -1; 
@@ -351,14 +353,15 @@ namespace MechanicalDms.AccountManager
                         .AddSection(SectionModes.Left, new Kmarkdown($"(met){e.Data.AuthorId}(met) 查询到您的绑定信息"),null)
                         .AddDivider()
                         .AddSection(SectionModes.Left, new Kmarkdown($"Kaiheila UID：{user.Uid}"), null)
-                        .AddSection(SectionModes.Left, new Kmarkdown($"Kaiheila Username：{user.Username}#{user.IdentifyNumber}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Kaiheila 用户名：{user.Username}#{user.IdentifyNumber}"), null)
                         .AddDivider()
                         .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili UID：{biliUid}"), null)
-                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili Username：{biliName}"), null)
-                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili Level：{biliLevel}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili 用户名：{biliName}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Bilibili 用户等级：{biliLevel}"), null)
                         .AddDivider()
                         .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft UUID：{mcUuid}"), null)
-                        .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft Player Name：{mcPlayerName}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft 玩家名：{mcPlayerName}"), null)
+                        .AddSection(SectionModes.Left, new Kmarkdown($"Minecraft 帐号类型: {mcAccount}"), null)
                         .Build())
                     .Build())
                 .Build();
