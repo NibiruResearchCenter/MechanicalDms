@@ -170,15 +170,15 @@ namespace MechanicalDms.Functions.HttpApis
                         // Check minecraft player profile exist or not
                         var mcUuid = user.MinecraftPlayer is null ? "NaN" : user.MinecraftPlayer.Uuid;
                         var mcUsername = user.MinecraftPlayer is null ? "NaN" : user.MinecraftPlayer.PlayerName;
-                        var mcIsLegit = user.MinecraftPlayer is null ? "NaN" : user.MinecraftPlayer.IsLegitCopy.ToString();
-                        logger.LogInformation($"User minecraft profile (uuid, name, legit) = ({mcUuid}, {mcUsername}, {mcIsLegit})");
+                        var mcAccountStatus = user.MinecraftPlayer is null ? "NaN" : (user.MinecraftPlayer.IsLegitCopy ? "Premium" : "Cracked");
+                        logger.LogInformation($"User minecraft profile (uuid, name, legit) = ({mcUuid}, {mcUsername}, {mcAccountStatus})");
                         returnValue.Add("content", $"Your data has been found in the database.\n" +
                                                    $"Discord Username = {user.Username}#{user.IdentifyNumber}\n" +
                                                    $"Discord UID = {user.Uid}\n" +
                                                    $"Element = {ElementHelper.GetElementString(user.Element)} {ElementHelper.GetGuardString(user.IsGuard)}\n" +
                                                    $"Minecraft UUID = {mcUuid}\n" +
                                                    $"Minecraft Username = {mcUsername}\n" +
-                                                   $"Minecraft Is Legit Copy = {mcIsLegit}");
+                                                   $"Minecraft Account = {mcAccountStatus}");
                     }
                     
                     // Patch slash command response message
