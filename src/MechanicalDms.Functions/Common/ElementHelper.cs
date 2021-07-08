@@ -1,4 +1,7 @@
 // ReSharper disable ConvertIfStatementToReturnStatement
+
+using System;
+
 namespace MechanicalDms.Functions.Common
 {
     public static class ElementHelper
@@ -23,6 +26,39 @@ namespace MechanicalDms.Functions.Common
             }
             return 0;
         }
+        public static int GetElementFromDiscord(string roles)
+        {
+            if (roles.Contains("860617905216553010"))
+            {
+                return 2;
+            }
+            if (roles.Contains("860618024767455252"))
+            {
+                return 3;
+            }
+            if (roles.Contains("860618316813041735"))
+            {
+                return 4;
+            }
+            if (roles.Contains("860618475965644800"))
+            {
+                return 5;
+            }
+            return 0;
+        }
+
+        public static ulong GetElementRoleForDiscord(int element)
+        {
+            return element switch
+            {
+                2 => 860617905216553010,
+                3 => 860618024767455252,
+                4 => 860618316813041735,
+                5 => 860618475965644800,
+                _ => 0
+            };
+        }
+        
         public static bool IsGuardFromKaiheila(string roles)
         {
             if (roles.Contains("254775") || roles.Contains("218176") || roles.Contains("218131"))
