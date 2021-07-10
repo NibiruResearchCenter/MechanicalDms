@@ -143,7 +143,7 @@ namespace MechanicalDms.Functions.HttpApis
                 await db.SaveChangesAsync();
                 
                 logger.LogInformation($"请求成功，已添加 Minecraft Player UUID = {body.Uuid}，" +
-                                      $"MinecraftPlayerName = {body.PlayerName}，Discord UID = {body.Uid}");
+                                      $"MinecraftPlayerName = {body.PlayerName}，IsLegitCopy = {body.IsLegitCopy}，Discord UID = {body.Uid}");
                 
                 response.StatusCode = HttpStatusCode.OK;
                 await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
@@ -281,7 +281,7 @@ namespace MechanicalDms.Functions.HttpApis
             await db.SaveChangesAsync();
             
             logger.LogInformation($"请求成功，已添加 Minecraft Player UUID = {body.Uuid}，" +
-                                  $"MinecraftPlayerName = {body.PlayerName}，开黑啦 UID = {body.Uid}");
+                                  $"MinecraftPlayerName = {body.PlayerName}，IsLegitCopy = {body.IsLegitCopy}，开黑啦 UID = {body.Uid}");
             
             response.StatusCode = HttpStatusCode.OK;
             await response.WriteStringAsync(JsonSerializer.Serialize(new HttpResponse()
