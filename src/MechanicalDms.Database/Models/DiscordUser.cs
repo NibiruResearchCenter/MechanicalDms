@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MechanicalDms.Database.Models
@@ -16,6 +17,8 @@ namespace MechanicalDms.Database.Models
         public int Element { get; set; }
         [Required]
         public bool IsGuard { get; set; }
+        [Required, DefaultValue(false)]
+        public bool SyncError { get; set; }
 
         public MinecraftPlayer MinecraftPlayer { get; set; }
     }
