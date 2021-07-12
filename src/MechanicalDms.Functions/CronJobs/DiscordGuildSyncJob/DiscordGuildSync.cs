@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Rest;
+using Discord.WebSocket;
 using MechanicalDms.Database;
 using MechanicalDms.Functions.Common;
 using Microsoft.Azure.Functions.Worker;
@@ -28,9 +28,9 @@ namespace MechanicalDms.Functions.CronJobs.DiscordGuildSyncJob
             // Query database
             await using var db = new DmsDbContext();
             var discordUsers = db.DiscordUsers.ToList();
-            
+
             // Discord bot
-            var client = new DiscordRestClient();
+            var client = new DiscordSocketClient();
             client.Log += (message) =>
             {
                 var exceptionMessage = message.Exception is not null ? message.Exception.Message : "";
@@ -61,19 +61,28 @@ namespace MechanicalDms.Functions.CronJobs.DiscordGuildSyncJob
                 return Task.CompletedTask;
             };
             await client.LoginAsync(TokenType.Bot, token);
-            
-            if (client.LoginState is not LoginState.LoggingIn)
+            await client.StartAsync();
+
+            await Task.Delay(5000);
+
+            if (client.ConnectionState is not ConnectionState.Connected) 
             {
-                logger.LogCritical("DiscordRestClient login failed.");
+                logger.LogCritical("Discord connect failed.");
+                await client.StopAsync();
+                await client.LogoutAsync();
                 await Task.Delay(100);
                 return;
             }
-            
+
+            var rest = client.Rest;
+
             // Get guild
-            var guild = await client.GetGuildAsync(guildId);
+            var guild = await rest.GetGuildAsync(guildId);
             if (guild is null)
             {
                 logger.LogCritical("Get guild failed.");
+                await client.StopAsync();
+                await client.LogoutAsync();
                 await Task.Delay(100);
                 return;
             }
@@ -94,8 +103,13 @@ namespace MechanicalDms.Functions.CronJobs.DiscordGuildSyncJob
                 }
                 discordUser.Username = remoteUser.Username;
                 discordUser.IdentifyNumber = remoteUser.Discriminator;
-                discordUser.IsGuard = ElementHelper.IsGuardFromDiscord(string.Join(' ', remoteUser.RoleIds));
-                if (ElementHelper.GetElementFromDiscord(string.Join(' ', remoteUser.RoleIds)) == 0)
+                var roleIdList = new List<string>();
+                foreach(var role in remoteUser.RoleIds)
+                {
+                    roleIdList.Add(role.ToString());
+                }
+                discordUser.IsGuard = ElementHelper.IsGuardFromDiscord(string.Join(' ', roleIdList));
+                if (ElementHelper.GetElementFromDiscord(string.Join(' ', roleIdList)) == 0)
                 {
                     var roleId = ElementHelper.GetElementRoleForDiscord(discordUser.Element);
                     await remoteUser.AddRoleAsync(roleId);
@@ -130,8 +144,10 @@ namespace MechanicalDms.Functions.CronJobs.DiscordGuildSyncJob
 
             var channel = await guild.GetTextChannelAsync(logChannelId);
             await channel.SendMessageAsync(logMessage);
-            
+
             // Discord logout
+            rest = null;
+            await client.StopAsync();
             await client.LogoutAsync();
             await Task.Delay(100);
         }
