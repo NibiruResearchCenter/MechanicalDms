@@ -47,12 +47,17 @@ namespace MechanicalDms.Common
         {
             return element switch
             {
+                1 => 864041853358571541,
                 2 => 860617905216553010,
                 3 => 860618024767455252,
                 4 => 860618316813041735,
                 5 => 860618475965644800,
                 _ => 0
             };
+        }
+        public static bool IsHaveEnergyRoleFromDiscord(string roles)
+        {
+            return roles.Contains("864041853358571541");
         }
         public static bool IsGuardFromKaiheila(string roles)
         {
@@ -76,7 +81,6 @@ namespace MechanicalDms.Common
             var e = element.ToLower().Trim();
             return e switch
             {
-                "energy" => 1,
                 "wind" => 2,
                 "aqua" => 3,
                 "fire" => 4,
