@@ -1,28 +1,33 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31424.327
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{55852037-60C2-4F15-95F9-FF2329DD0960}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugin", "Plugin", "{241198DE-BA49-4B04-9EB0-E8A512F3D722}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{9D2452E9-6485-48BE-A200-5D51B13CE6AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Entertainment", "src\MechanicalDms.Entertainment\MechanicalDms.Entertainment.csproj", "{CC172755-84ED-478A-9CF5-83FA7767ED99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Entertainment", "src\MechanicalDms.Entertainment\MechanicalDms.Entertainment.csproj", "{CC172755-84ED-478A-9CF5-83FA7767ED99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Database", "src\MechanicalDms.Database\MechanicalDms.Database.csproj", "{6F11993E-0CAA-4885-B4DE-68A7979F1601}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Database", "src\MechanicalDms.Database\MechanicalDms.Database.csproj", "{6F11993E-0CAA-4885-B4DE-68A7979F1601}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Maintainer", "src\MechanicalDms.Maintainer\MechanicalDms.Maintainer.csproj", "{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Maintainer", "src\MechanicalDms.Maintainer\MechanicalDms.Maintainer.csproj", "{CA22B69F-EF4F-4692-AA53-6BE5D6A10EB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Common", "src\MechanicalDms.Common\MechanicalDms.Common.csproj", "{7922510F-957B-4709-8BB8-AD276D210BBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Common", "src\MechanicalDms.Common\MechanicalDms.Common.csproj", "{7922510F-957B-4709-8BB8-AD276D210BBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.AccountManager", "src\MechanicalDms.AccountManager\MechanicalDms.AccountManager.csproj", "{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.AccountManager", "src\MechanicalDms.AccountManager\MechanicalDms.AccountManager.csproj", "{CD681FA9-6843-4CE5-92B4-993BA8D9C78D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Migration", "src\MechanicalDms.Migration\MechanicalDms.Migration.csproj", "{40D3214D-726D-4301-90F4-A6118823C1F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Migration", "src\MechanicalDms.Migration\MechanicalDms.Migration.csproj", "{40D3214D-726D-4301-90F4-A6118823C1F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Operation", "src\MechanicalDms.Operation\MechanicalDms.Operation.csproj", "{D9CE77B1-B044-4945-835E-19A80DFFAF75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Operation", "src\MechanicalDms.Operation\MechanicalDms.Operation.csproj", "{D9CE77B1-B044-4945-835E-19A80DFFAF75}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{572A5ECB-1EBD-44B7-8658-89583AF3BD1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Functions", "src\MechanicalDms.Functions\MechanicalDms.Functions.csproj", "{3B98E97A-54A2-4CC1-9328-F91399F3FF12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MechanicalDms.Functions", "src\MechanicalDms.Functions\MechanicalDms.Functions.csproj", "{3B98E97A-54A2-4CC1-9328-F91399F3FF12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MechanicalDms.Discord.Function", "src\MechanicalDms.Discord.Function\MechanicalDms.Discord.Function.csproj", "{60465FFB-6206-438C-ACF3-954DA473B60B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,6 +67,13 @@ Global
 		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B98E97A-54A2-4CC1-9328-F91399F3FF12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60465FFB-6206-438C-ACF3-954DA473B60B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60465FFB-6206-438C-ACF3-954DA473B60B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60465FFB-6206-438C-ACF3-954DA473B60B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60465FFB-6206-438C-ACF3-954DA473B60B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CC172755-84ED-478A-9CF5-83FA7767ED99} = {241198DE-BA49-4B04-9EB0-E8A512F3D722}
@@ -72,5 +84,9 @@ Global
 		{40D3214D-726D-4301-90F4-A6118823C1F2} = {55852037-60C2-4F15-95F9-FF2329DD0960}
 		{D9CE77B1-B044-4945-835E-19A80DFFAF75} = {55852037-60C2-4F15-95F9-FF2329DD0960}
 		{3B98E97A-54A2-4CC1-9328-F91399F3FF12} = {572A5ECB-1EBD-44B7-8658-89583AF3BD1A}
+		{60465FFB-6206-438C-ACF3-954DA473B60B} = {572A5ECB-1EBD-44B7-8658-89583AF3BD1A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {422192F3-37A6-4E53-82A1-BE3B6D52C03E}
 	EndGlobalSection
 EndGlobal
