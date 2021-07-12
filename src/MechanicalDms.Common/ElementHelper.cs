@@ -1,8 +1,5 @@
 // ReSharper disable ConvertIfStatementToReturnStatement
-
-using System;
-
-namespace MechanicalDms.Functions.Common
+namespace MechanicalDms.Common
 {
     public static class ElementHelper
     {
@@ -67,7 +64,8 @@ namespace MechanicalDms.Functions.Common
         }
         public static bool IsGuardFromDiscord(string roles)
         {
-            if (roles.Contains("785014197213724683"))
+            if (roles.Contains("785014197213724683") || 
+                roles.Contains("863018501077860352"))
             {
                 return true;
             }
