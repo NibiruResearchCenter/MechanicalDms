@@ -115,9 +115,25 @@ namespace MechanicalDms.Discord.Function.Triggers.Queue
                                         Element = ElementHelper.GetElementFromString(elementParam),
                                         IsGuard = ElementHelper.IsGuardFromDiscord(string.Join(' ', command.Member.Roles))
                                     };
-                                    db.DiscordUsers.Add(discordUser);
-                                    await db.SaveChangesAsync();
-                                    logger.LogInformation("Database updated. Return message.");
+                                    try
+                                    {
+                                        db.DiscordUsers.Add(discordUser);
+                                        await db.SaveChangesAsync();
+                                        logger.LogInformation("Database updated. Return message.");
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        logger.LogError(e.Message);
+                                        restRequest.AddJsonBody(new Dictionary<string, string>()
+                                        {
+                                            {
+                                                "content", $"Internal Error - Maybe you are already exist in database."
+                                            }
+                                        });
+                                        var errRes = await restClient.ExecuteAsync(restRequest);
+                                        logger.LogInformation("HTTP: " + errRes.Content);
+                                        return;
+                                    }
 
                                     // Patch slash command response message
                                     restRequest.AddJsonBody(new Dictionary<string, string>()
